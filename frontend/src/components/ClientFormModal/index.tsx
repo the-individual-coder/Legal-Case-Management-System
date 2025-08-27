@@ -12,7 +12,7 @@ const ClientFormModal: React.FC<ClientFormModalProps> = ({ isOpen, onClose }) =>
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
-      <h1 className='text-red-100'>asdasd</h1>
+      <h1 className='text-sm'>asdasd</h1>
       <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Client Intake Form</h2>
