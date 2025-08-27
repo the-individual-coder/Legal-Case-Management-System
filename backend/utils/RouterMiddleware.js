@@ -1,13 +1,13 @@
-const fs = require("fs")
-const path = require("path")
-const Logger = require("./Logger.js")
+const fs = require("fs");
+const path = require("path");
+const Logger = require("./Logger.js");
 // const ApplicationSettings = require("./ApplicationSettings.js")
 
-const API_CONTEXT = process.env.API_CONTEXT || 'app'
+const API_CONTEXT = process.env.API_CONTEXT || "app";
 const PUBLIC_ROUTE = [
-    // '/api/v1.0/auth',
-    // '/api/v1.0/admission',
-]
+  // '/api/v1.0/auth',
+  // '/api/v1.0/admission',
+];
 
 module.exports = class RouterMiddleware {
   constructor() {}
@@ -41,15 +41,17 @@ module.exports = class RouterMiddleware {
               let router = new routerClass.default();
 
               if (
-                !PUBLIC_ROUTE.includes(endpoint) 
+                !PUBLIC_ROUTE.includes(endpoint)
                 // &&
                 // (
                 //   ApplicationSettings.getValue("SECURE_API") || ""
                 // ).toLowerCase() === "true"
               ) {
-                app.use(endpoint,
-                    //  this.authMiddleware, 
-                     router.getRoutes());
+                app.use(
+                  endpoint,
+                  //  this.authMiddleware,
+                  router.getRoutes()
+                );
               } else {
                 app.use(endpoint, router.getRoutes());
               }
@@ -58,8 +60,6 @@ module.exports = class RouterMiddleware {
                 `Initializing endpoint: ${endpoint}`,
                 "\x1b[0m"
               );
-
-
             });
           }
         });
@@ -76,4 +76,4 @@ module.exports = class RouterMiddleware {
       next();
     } else return res.status(401).json({ message: "Invalid token." });
   }
-}
+};

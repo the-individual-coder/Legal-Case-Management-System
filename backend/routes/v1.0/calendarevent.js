@@ -1,7 +1,7 @@
 const BaseRouter = require("../../utils/BaseRouter.js")
-const Controller = require("../../controllers/applicant.controller.js")
+const Controller = require("../../controllers/calendarevent.controller.js")
 
-module.exports = class ApplicantRouter extends BaseRouter {
+module.exports = class CalendareventRouter extends BaseRouter {
   constructor() {
     super(new Controller());
   }
@@ -13,8 +13,8 @@ module.exports = class ApplicantRouter extends BaseRouter {
     let mappings = [
       {
         method: 'get',
-        path: '/getApplicants',
-        function: "getApplicants"
+        path: '/getCalendarevents',
+        function: "getCalendarevents"
       },
     ]
     return mappings;

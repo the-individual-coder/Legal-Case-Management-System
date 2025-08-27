@@ -1,12 +1,12 @@
 {
   "development": {
-        "username": "uwq3sz3jicedb22rd81h",
-        "password": "S8pTpEiYZbszjSTwk3U2pR8DoLd23Q",
-        "database": "bcz2fqqovzm8dkztjkor",
-        "host": "91.208.207.32",
-        "port": 50013,
-        "dialect": "postgres",
-        "logging": true
+    "username": "uwq3sz3jicedb22rd81h",
+    "password": "S8pTpEiYZbszjSTwk3U2pR8DoLd23Q",
+    "database": "bcz2fqqovzm8dkztjkor",
+    "host": "91.208.207.32",
+    "port": 50013,
+    "dialect": "postgres",
+    "logging": true
   },
   "test": {
     "username": "root",

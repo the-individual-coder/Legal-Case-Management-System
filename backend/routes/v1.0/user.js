@@ -1,7 +1,7 @@
 const BaseRouter = require("../../utils/BaseRouter.js")
-const Controller = require("../../controllers/applicant.controller.js")
+const Controller = require("../../controllers/user.controller.js")
 
-module.exports = class ApplicantRouter extends BaseRouter {
+module.exports = class UserRouter extends BaseRouter {
   constructor() {
     super(new Controller());
   }
@@ -13,8 +13,8 @@ module.exports = class ApplicantRouter extends BaseRouter {
     let mappings = [
       {
         method: 'get',
-        path: '/getApplicants',
-        function: "getApplicants"
+        path: '/getUsers',
+        function: "getUsers"
       },
     ]
     return mappings;
