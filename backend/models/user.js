@@ -1,41 +1,73 @@
 "use strict";
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  class User extends Model {
+  class Users extends Model {
     static associate(models) {
-      User.hasMany(models.Case, {
+      Users.hasMany(models.Case, {
         as: "assignedCases",
         foreignKey: "assignedLawyerId",
       });
-      User.hasMany(models.Appointment, {
+      Users.hasMany(models.Appointment, {
         as: "appointments",
         foreignKey: "lawyerId",
       });
-      User.hasMany(models.Note, { as: "notes", foreignKey: "authorId" });
-      User.hasMany(models.Task, { as: "tasks", foreignKey: "assignedToId" });
-      User.hasMany(models.CalendarEvent, {
+      Users.hasMany(models.Note, { as: "notes", foreignKey: "authorId" });
+      Users.hasMany(models.Task, { as: "tasks", foreignKey: "assignedToId" });
+      Users.hasMany(models.CalendarEvent, {
         as: "calendarEvents",
         foreignKey: "createdById",
       });
-      User.hasMany(models.CaseClosure, {
+      Users.hasMany(models.CaseClosure, {
         as: "closures",
         foreignKey: "closedById",
       });
-      User.hasMany(models.ActivityLog, {
+      Users.hasMany(models.ActivityLog, {
         as: "activities",
         foreignKey: "userId",
       });
     }
   }
-  User.init(
+
+  Users.init(
     {
-      name: DataTypes.STRING,
-      email: DataTypes.STRING,
-      password: DataTypes.STRING,
-      role: DataTypes.STRING,
-      status: DataTypes.STRING,
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      image: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      role: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "client",
+      },
+      permissions: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: true,
+      },
+      status: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "active",
+      },
+      providerId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
-    { sequelize, modelName: "User" }
+    {
+      sequelize,
+      modelName: "Users",
+    }
   );
-  return User;
+
+  return Users;
 };

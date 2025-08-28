@@ -1,48 +1,68 @@
-'use client';
+// src/components/ClientFormModal.tsx
+"use client";
+import { useState } from "react";
+import { Modal, Form, Input, Button, message } from "antd";
+import { post } from "@/lib/api";
+import type { Client } from "@/lib/api";
 
-import React from 'react';
-
-type ClientFormModalProps = {
-  isOpen: boolean;
+export default function ClientFormModal({
+  visible,
+  onClose,
+  defaultValues,
+}: {
+  visible: boolean;
   onClose: () => void;
-};
+  defaultValues?: Partial<Client>;
+}) {
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
-const ClientFormModal: React.FC<ClientFormModalProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+  async function submit(values: any) {
+    setLoading(true);
+    try {
+      await post("/api/clients", values);
+      message.success("Client created");
+      onClose();
+    } catch (e: any) {
+      message.error(e?.message ?? "Failed");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
-      <h1 className='text-sm'>asdasd</h1>
-      <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-lg">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Client Intake Form</h2>
-          <button onClick={onClose} className="text-gray-600 hover:text-black">✕</button>
+    <Modal
+      title="New Client"
+      open={visible}
+      onCancel={onClose}
+      footer={null}
+      destroyOnClose
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={defaultValues}
+        onFinish={submit}
+      >
+        <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>
+          <Input placeholder="Jane Doe" />
+        </Form.Item>
+        <Form.Item name="email" label="Email" rules={[{ type: "email" }]}>
+          <Input />
+        </Form.Item>
+        <Form.Item name="phone" label="Phone">
+          <Input />
+        </Form.Item>
+        <Form.Item name="address" label="Address">
+          <Input />
+        </Form.Item>
+        <div className="flex justify-end gap-2">
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="primary" htmlType="submit" loading={loading}>
+            Save
+          </Button>
         </div>
-        <form className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Full Name</label>
-            <input type="text" className="w-full border rounded px-3 py-2" placeholder="Enter full name" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input type="email" className="w-full border rounded px-3 py-2" placeholder="Enter email" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Phone</label>
-            <input type="tel" className="w-full border rounded px-3 py-2" placeholder="Enter phone number" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Address</label>
-            <textarea className="w-full border rounded px-3 py-2" placeholder="Enter address" />
-          </div>
-          <div className="flex justify-end gap-2 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded text-sm">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded text-sm">Submit</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Form>
+    </Modal>
   );
-};
-
-export default ClientFormModal;
+}

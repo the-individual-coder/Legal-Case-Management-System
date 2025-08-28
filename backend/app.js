@@ -1,12 +1,13 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
 const port = process.env.PORT || 5002;
 
 const { DatabaseService, Applicant, Case } = require("./models"); // ✅ works now
 const RouterMiddleware = require("./utils/RouterMiddleware");
 
 app.use(express.json());
-
+app.use(cors());
 app.get("/", async (req, res) => {
   try {
     const applicants = await Applicant.findAll();
