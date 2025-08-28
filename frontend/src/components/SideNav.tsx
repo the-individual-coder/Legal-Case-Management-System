@@ -25,14 +25,9 @@ export default function SideNav() {
     label: <Link href={i.href}>{i.label}</Link>,
     icon: i.icon,
   }));
-  console.log("the itemss", items)
   return (
     <div className="p-4">
-      <Menu
-        mode="inline"
-        selectedKeys={[pathname]}
-        items={items}
-      />
+      <Menu mode="inline" selectedKeys={[pathname]} items={items} />
     </div>
   );
 }

@@ -36,7 +36,7 @@ export default function ClientFormModal({
       open={visible}
       onCancel={onClose}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form
         form={form}
