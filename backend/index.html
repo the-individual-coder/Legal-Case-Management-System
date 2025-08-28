@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Legal Case Management System | API Gateway</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <div class="jumbotron" style="height: 120vh">
+      <div style="padding: 70px">
+        <h1 class="display-3">Legal Case Management System</h1>
+        <div id="serverTime"></div>
+        <p class="lead" style="margin: 50px 0px">
+          A REST API in API Gateway is a collection of resources and methods
+          that are integrated with backend HTTP endpoints. You can use API
+          Gateway features to help you with all aspects of the API lifecycle,
+          from creation through monitoring your production APIs. It also
+          delivers security, policy enforcement, and monitoring and visibility
+          across on-premises, multi-cloud, and hybrid environments.
+        </p>
+        <hr class="my-4" />
+        <p style="margin-top: 50px; font-size: 16px; font-weight: 500">
+          Configure your API endpoint via the Administration System (AS)
+        </p>
+        <a class="btn btn-outline-danger btn-lg" href="#" role="button"
+          >Configure</a
+        >
+      </div>
+    </div>
+    <script>
+      var serverTime = new Date();
+      document.getElementById("serverTime").innerHTML = serverTime;
+    </script>
+  </body>
+</html>

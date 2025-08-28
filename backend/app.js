@@ -2,20 +2,14 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 5002;
-
-const { DatabaseService, Applicant, Case } = require("./models"); // ✅ works now
+const path = require("path");
+const { DatabaseService, Case } = require("./models"); // ✅ works now
 const RouterMiddleware = require("./utils/RouterMiddleware");
 
 app.use(express.json());
 app.use(cors());
-app.get("/", async (req, res) => {
-  try {
-    const applicants = await Applicant.findAll();
-    res.status(200).json(applicants);
-  } catch (error) {
-    console.error("Error fetching applicants:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
+app.get("/", (req, resp) => {
+  return resp.sendFile(path.resolve("index.html"));
 });
 
 app.get("/case", async (req, res) => {
