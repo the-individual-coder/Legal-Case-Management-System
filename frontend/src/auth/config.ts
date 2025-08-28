@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
                 providerId: token.sub || token.id, // Google account ID
               }),
             });
-
+            
           if (res.ok) {
 
             const data: any = (await res.json()).data;
