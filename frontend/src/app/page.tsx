@@ -1,17 +1,11 @@
 "use client";
-import { ReactNode, useEffect } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Spin, Result } from "antd";
+import { Spin } from "antd";
 import { useRouter } from "next/navigation";
 
-export default function Home({
-  children,
-  requiredRoles,
-}: {
-  children: ReactNode;
-  requiredRoles?: string[];
-}) {
-  const { status, data } = useSession();
+export default function Home() {
+  const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,25 +23,4 @@ export default function Home({
       </div>
     );
   }
-
-  if (status === "unauthenticated") {
-    return null;
-  }
-
-  const role = (data?.user as any)?.role;
-  if (
-    requiredRoles &&
-    requiredRoles.length > 0 &&
-    !requiredRoles.includes(role)
-  ) {
-    return (
-      <Result
-        status="403"
-        title="403"
-        subTitle="You do not have access to this resource."
-      />
-    );
-  }
-
-  return <>{children}</>;
 }
