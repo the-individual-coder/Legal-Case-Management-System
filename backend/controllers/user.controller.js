@@ -1,6 +1,6 @@
 const { Users } = require("../models");
 const BaseController = require("../utils/BaseController");
-const { getPermissionsByRole } = require("../utils/rbac.ts");
+const { getPermissionsByRole } = require("../utils/rbac.js");
 module.exports = class UserController extends BaseController {
   constructor() {
     super(Users);
