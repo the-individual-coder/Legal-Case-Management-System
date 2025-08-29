@@ -1,8 +1,8 @@
-// src/lib/rbac.ts
+// src/lib/rbac.js
 
-export type Role = "admin" | "lawyer" | "reviewer" | "staff" | "client";
+/** @typedef {"admin" | "lawyer" | "reviewer" | "staff" | "client"} Role */
 
-export const PERMISSIONS = {
+const PERMISSIONS = {
   DASHBOARD: "dashboard",
   APPOINTMENTS: "appointments",
   CLIENTS: "clients",
@@ -17,7 +17,7 @@ export const PERMISSIONS = {
   NOTES: "notes",
 };
 
-export const ROLE_PERMISSIONS: Record<Role, string[]> = {
+const ROLE_PERMISSIONS = {
   admin: Object.values(PERMISSIONS),
   lawyer: [
     PERMISSIONS.CASES,
@@ -27,10 +27,26 @@ export const ROLE_PERMISSIONS: Record<Role, string[]> = {
     PERMISSIONS.DASHBOARD,
   ],
   reviewer: [PERMISSIONS.DOCUMENTS, PERMISSIONS.NOTES, PERMISSIONS.DASHBOARD],
-  staff: [PERMISSIONS.APPOINTMENTS, PERMISSIONS.CLIENTS, PERMISSIONS.BILLING, PERMISSIONS.DASHBOARD],
-  client: [PERMISSIONS.APPOINTMENTS, PERMISSIONS.DOCUMENTS, PERMISSIONS.BILLING, PERMISSIONS.DASHBOARD],
+  staff: [
+    PERMISSIONS.APPOINTMENTS,
+    PERMISSIONS.CLIENTS,
+    PERMISSIONS.BILLING,
+    PERMISSIONS.DASHBOARD,
+  ],
+  client: [
+    PERMISSIONS.APPOINTMENTS,
+    PERMISSIONS.DOCUMENTS,
+    PERMISSIONS.BILLING,
+    PERMISSIONS.DASHBOARD,
+  ],
 };
 
-export function getPermissionsByRole(role: Role): string[] {
+function getPermissionsByRole(role) {
   return ROLE_PERMISSIONS[role] ?? [];
 }
+
+module.exports = {
+  PERMISSIONS,
+  ROLE_PERMISSIONS,
+  getPermissionsByRole,
+};
