@@ -4,7 +4,10 @@ module.exports = (sequelize, DataTypes) => {
   class Appointment extends Model {
     static associate(models) {
       Appointment.belongsTo(models.Case, { foreignKey: "caseId" });
-      Appointment.belongsTo(models.Client, { foreignKey: "clientId" });
+      Appointment.belongsTo(models.Client, {
+        as: "client",
+        foreignKey: "clientId",
+      });
       Appointment.belongsTo(models.User, {
         as: "lawyer",
         foreignKey: "lawyerId",
@@ -13,6 +16,11 @@ module.exports = (sequelize, DataTypes) => {
   }
   Appointment.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       caseId: DataTypes.INTEGER,
       clientId: DataTypes.INTEGER,
       lawyerId: DataTypes.INTEGER,
@@ -22,5 +30,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     { sequelize, modelName: "Appointment" }
   );
+
   return Appointment;
 };

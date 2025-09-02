@@ -1,15 +1,27 @@
-const { Users } = require("../models");
+const { User } = require("../models");
 const BaseController = require("../utils/BaseController");
 const { getPermissionsByRole } = require("../utils/rbac.js");
 module.exports = class UserController extends BaseController {
   constructor() {
-    super(Users);
+    super(User);
   }
 
-  async getUsers() {
-    const user = await Users.findAll();
-    console.log("the user");
-    return this.createResponse(user);
+  // GET /api/users?role=lawyer
+  async getUsers(req, res) {
+    try {
+      const { role } = req.query;
+      const where = {};
+      if (role) where.role = role;
+
+      const users = await User.findAll({
+        where,
+        attributes: ["id", "name", "email", "image"],
+      });
+
+      return this.createResponse({ success: true, data: users });
+    } catch (err) {
+      return this.createResponse({ success: false, message: err.message });
+    }
   }
 
   async syncUser(req, res) {
@@ -22,11 +34,11 @@ module.exports = class UserController extends BaseController {
       }
 
       // Find existing user by email
-      let user = await Users.findOne({ where: { email } });
+      let user = await User.findOne({ where: { email } });
       console.log("the userr", user);
       if (!user) {
         // New user: create with default role 'client'
-        user = await Users.create({
+        user = await User.create({
           email,
           name,
           image,
@@ -47,7 +59,7 @@ module.exports = class UserController extends BaseController {
 
       // Ensure permissions are always returned
       const permissions = getPermissionsByRole(user.role);
-      console.log("this is the user", user);
+      console.log("the permissions", permissions);
       return this.createResponse({
         id: user.id,
         email: user.email,

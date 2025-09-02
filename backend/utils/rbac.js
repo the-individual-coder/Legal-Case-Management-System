@@ -15,6 +15,7 @@ const PERMISSIONS = {
   USERS: "users",
   AUDIT_LOGS: "audit_logs",
   NOTES: "notes",
+  CLIENT_INTAKE: "client_intake",
 };
 
 const ROLE_PERMISSIONS = {
@@ -30,6 +31,7 @@ const ROLE_PERMISSIONS = {
   staff: [
     PERMISSIONS.APPOINTMENTS,
     PERMISSIONS.CLIENTS,
+    PERMISSIONS.CLIENT_INTAKE,
     PERMISSIONS.BILLING,
     PERMISSIONS.DASHBOARD,
   ],

@@ -2,34 +2,34 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class Users extends Model {
+  class User extends Model {
     static associate(models) {
-      Users.hasMany(models.Case, {
+      User.hasMany(models.Case, {
         as: "assignedCases",
         foreignKey: "assignedLawyerId",
       });
-      Users.hasMany(models.Appointment, {
+      User.hasMany(models.Appointment, {
         as: "appointments",
         foreignKey: "lawyerId",
       });
-      Users.hasMany(models.Note, { as: "notes", foreignKey: "authorId" });
-      Users.hasMany(models.Task, { as: "tasks", foreignKey: "assignedToId" });
-      Users.hasMany(models.CalendarEvent, {
+      User.hasMany(models.Note, { as: "notes", foreignKey: "authorId" });
+      User.hasMany(models.Task, { as: "tasks", foreignKey: "assignedToId" });
+      User.hasMany(models.CalendarEvent, {
         as: "calendarEvents",
         foreignKey: "createdById",
       });
-      Users.hasMany(models.CaseClosure, {
+      User.hasMany(models.CaseClosure, {
         as: "closures",
         foreignKey: "closedById",
       });
-      Users.hasMany(models.ActivityLog, {
+      User.hasMany(models.ActivityLog, {
         as: "activities",
         foreignKey: "userId",
       });
     }
   }
 
-  Users.init(
+  User.init(
     {
       name: {
         type: DataTypes.STRING,
@@ -65,9 +65,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "Users",
+      modelName: "User",
     }
   );
 
-  return Users;
+  return User;
 };

@@ -13,6 +13,7 @@ export const PERMISSIONS = {
   USERS: "users",
   AUDIT_LOGS: "audit_logs",
   NOTES: "notes",
+  CLIENT_INTAKE: "client_intake",
 };
 
 export const ROLE_PERMISSIONS: Record<Role, string[]> = {
@@ -35,6 +36,7 @@ export const ROLE_PERMISSIONS: Record<Role, string[]> = {
     PERMISSIONS.CLIENTS,
     PERMISSIONS.BILLING,
     PERMISSIONS.DASHBOARD,
+    PERMISSIONS.CLIENT_INTAKE,
   ],
   client: [
     PERMISSIONS.APPOINTMENTS,
@@ -87,7 +89,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     key: "appointments",
     label: "Appointments",
-    href: "/appointments/new",
+    href: "/appointments",
     icon: <CalendarOutlined />,
     permission: PERMISSIONS.APPOINTMENTS,
   },
@@ -99,9 +101,16 @@ export const NAV_ITEMS: NavItem[] = [
     permission: PERMISSIONS.CLIENTS,
   },
   {
+    key: "client-intake",
+    label: "Client Intake",
+    href: "/client-intake",
+    icon: <FileTextOutlined />, // or another appropriate icon
+    permission: PERMISSIONS.CLIENT_INTAKE,
+  },
+  {
     key: "engagements",
     label: "Engagements",
-    href: "/engagements/new",
+    href: "/engagements",
     icon: <FileTextOutlined />,
     permission: PERMISSIONS.ENGAGEMENTS,
   },

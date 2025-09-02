@@ -1,7 +1,7 @@
 const BaseRouter = require("../../utils/BaseRouter.js");
-const Controller = require("../../controllers/case.controller.js");
+const Controller = require("../../controllers/clientintake.controller.js");
 
-module.exports = class CaseRouter extends BaseRouter {
+module.exports = class ClientIntakeRouter extends BaseRouter {
   constructor() {
     super(new Controller());
   }
@@ -13,13 +13,8 @@ module.exports = class CaseRouter extends BaseRouter {
     let mappings = [
       {
         method: "get",
-        path: "/getCases",
-        function: "getCases",
-      },
-      {
-        method: "get",
-        path: "/dashboard",
-        function: "getDashboard",
+        path: "/list",
+        function: "list",
       },
     ];
     return mappings;

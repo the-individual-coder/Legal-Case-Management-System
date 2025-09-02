@@ -1,42 +1,235 @@
 // src/app/dashboard/page.tsx
 "use client";
-import { Card, Breadcrumb } from "antd";
 
-import AuthGuard from "@/components/AuthGuard";
-import StatsCard from "@/components/StatsCard";
-import RecentActivityFeed from "@/components/RecentActivityFeed";
-import { MainLayout } from "@/layouts/MainLayout";
-import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { Row, Col, Spin, Empty } from "antd";
+import {
+  FileDoneOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  DollarCircleOutlined,
+} from "@ant-design/icons";
+
+import StatsCard from "@/components/Dashboard/StatsCard";
+import RecentActivityFeed from "@/components/Dashboard/RecentActivityFeed";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+type DashboardResponse = {
+  success: boolean;
+  data: {
+    metrics: {
+      totalCases: number;
+      activeClients: number;
+      upcomingAppointmentsCount: number;
+      pendingInvoicesCount: number;
+    };
+    upcomingAppointments: Array<any>;
+    pendingInvoices: Array<any>;
+    recentActivity: Array<any>;
+  };
+};
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<DashboardResponse["data"] | null>(null);
+  const [chartData, setChartData] = useState<{ date: string; value: number }[]>(
+    []
+  );
 
   useEffect(() => {
-    console.log("Session from useSession (browser)", session);
-  }, [session]);
+    const fetchDashboard = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/case/dashboard`,
+          {
+            credentials: "include",
+          }
+        );
+        console.log("the res", res);
+        if (!res.ok) throw new Error("Failed to fetch dashboard");
+        const json: DashboardResponse = await res.json();
+        console.log("The dataa", json);
+        console.log("The dataa data", json.data);
+
+        setData(json.data);
+
+        // Create a simple chart dataset from total cases over the last 6 months
+        // For now, we'll mock a series using the totalCases value as a flat baseline.
+        const total = json.data.metrics.totalCases || 0;
+        const months = 6;
+        const now = new Date();
+        const series = Array.from({ length: months }).map((_, i) => {
+          const d = new Date(
+            now.getFullYear(),
+            now.getMonth() - (months - 1 - i),
+            1
+          );
+          return {
+            date: d.toLocaleString("default", { month: "short" }),
+            value: Math.max(0, Math.round(total / (months - i) / 1.5)),
+          };
+        });
+        setChartData(series);
+      } catch (err) {
+        console.error(err);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  if (loading)
+    return (
+      <div className="p-8">
+        <Spin size="large" />
+      </div>
+    );
+  if (!data)
+    return (
+      <div className="p-8">
+        <Empty description="No dashboard data" />
+      </div>
+    );
 
   return (
-    <AuthGuard>
-      <div className="max-w-6xl mx-auto">
-        <Breadcrumb items={[{ title: "Dashboard" }]} />
-        <h3 className="text-xl font-semibold mt-4">Dashboard</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <StatsCard title="Active Cases" value="24" />
-          <StatsCard title="Pending Documents" value="8" />
-          <StatsCard title="Open Appointments" value="5" />
-        </div>
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card title="Activity">
-            <RecentActivityFeed />
-          </Card>
-          <Card title="Charts">
-            <div className="h-56 flex items-center justify-center text-gray-400">
-              Chart placeholder
-            </div>
-          </Card>
-        </div>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <div className="text-sm text-slate-500">D&S Law</div>
       </div>
-    </AuthGuard>
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} md={6}>
+          <StatsCard
+            title="Total Cases"
+            value={data.metrics.totalCases}
+            icon={<FileDoneOutlined />}
+            description="All cases in system"
+          />
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <StatsCard
+            title="Active Clients"
+            value={data.metrics.activeClients}
+            icon={<UserOutlined />}
+            description="Clients with active status"
+          />
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <StatsCard
+            title="Upcoming Appointments"
+            value={data.metrics.upcomingAppointmentsCount}
+            icon={<CalendarOutlined />}
+            description="Next 7 days"
+          />
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <StatsCard
+            title="Pending Invoices"
+            value={data.metrics.pendingInvoicesCount}
+            icon={<DollarCircleOutlined />}
+            description="Awaiting payment"
+          />
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={16}>
+          <div className="bg-white rounded-2xl shadow-sm p-4">
+            <h3 className="text-lg font-semibold mb-3">Cases trend</h3>
+            <div style={{ width: "100%", height: 280 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData as any}>
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#2563EB"
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </Col>
+
+        <Col xs={24} lg={8}>
+          <RecentActivityFeed items={data.recentActivity} />
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={12}>
+          <div className="bg-white rounded-2xl shadow-sm p-4">
+            <h3 className="text-lg font-semibold mb-3">
+              Upcoming Appointments
+            </h3>
+            {data.upcomingAppointments.length === 0 ? (
+              <Empty description="No appointments" />
+            ) : (
+              <ul className="space-y-3">
+                {data.upcomingAppointments.map((a) => (
+                  <li key={a.id} className="p-3 border rounded-lg">
+                    <div className="flex justify-between">
+                      <div>
+                        <div className="font-medium">
+                          {a.title || `Appointment #${a.id}`}
+                        </div>
+                        <div className="text-sm text-slate-500">
+                          {new Date(a.startAt).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="text-sm text-slate-400">{a.status}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Col>
+
+        <Col xs={24} md={12}>
+          <div className="bg-white rounded-2xl shadow-sm p-4">
+            <h3 className="text-lg font-semibold mb-3">Pending Invoices</h3>
+            {data.pendingInvoices.length === 0 ? (
+              <Empty description="No pending invoices" />
+            ) : (
+              <ul className="space-y-3">
+                {data.pendingInvoices.map((inv) => (
+                  <li
+                    key={inv.id}
+                    className="p-3 border rounded-lg flex justify-between"
+                  >
+                    <div>
+                      <div className="font-medium">#{inv.invoiceNumber}</div>
+                      <div className="text-sm text-slate-500">
+                        Due {new Date(inv.dueDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">₱{inv.amount}</div>
+                      <div className="text-xs text-amber-600">{inv.status}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Col>
+      </Row>
+    </div>
   );
 }

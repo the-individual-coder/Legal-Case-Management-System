@@ -19,7 +19,9 @@ export default function AppHeader() {
             <Avatar src={(session?.user as any)?.image} />
             <div>
               <div className="font-medium">{session?.user?.name}</div>
-              <div className="text-xs text-gray-500">{session?.user?.email}</div>
+              <div className="text-xs text-gray-500">
+                {session?.user?.email}
+              </div>
             </div>
           </div>
         </div>
@@ -47,7 +49,11 @@ export default function AppHeader() {
     {
       key: "logout",
       label: (
-        <Button block type="text" onClick={() => signOut({ callbackUrl: "/login" })}>
+        <Button
+          block
+          type="text"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+        >
           Logout
         </Button>
       ),

@@ -7,7 +7,19 @@ const { DatabaseService, Case } = require("./models"); // ✅ works now
 const RouterMiddleware = require("./utils/RouterMiddleware");
 
 app.use(express.json());
-app.use(cors());
+// Allow any origin dynamically, still support credentials
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow requests with no origin (like curl or Postman)
+      if (!origin) return callback(null, "*");
+      callback(null, origin);
+    },
+    credentials: true, // allow cookies
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
