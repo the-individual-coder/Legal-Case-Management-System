@@ -30,11 +30,11 @@ export default function EngagementPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/engagement/engagement`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/engagement/getEngagement`,
         { credentials: "include" }
       );
       const json = await res.json();
-      if (json.success) setEngagements(json.data);
+      setEngagements(json.data.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -51,16 +51,12 @@ export default function EngagementPage() {
       title: "Delete engagement?",
       onOk: async () => {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/engagement/engagement/${id}/${userId}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/engagement/deleteEngagement/${id}/${userId}`,
           { method: "DELETE", credentials: "include" }
         );
         const json = await res.json();
-        if (json.success) {
-          antMessage.success("Deleted successfully");
-          fetchEngagements();
-        } else {
-          antMessage.error(json.message);
-        }
+        antMessage.success("Deleted successfully");
+        fetchEngagements();
       },
     });
   };

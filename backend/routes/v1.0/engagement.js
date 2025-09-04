@@ -1,7 +1,7 @@
 const BaseRouter = require("../../utils/BaseRouter.js");
-const Controller = require("../../controllers/clientintake.controller.js");
+const Controller = require("../../controllers/engagement.controller.js");
 
-module.exports = class ClientIntakeRouter extends BaseRouter {
+module.exports = class EngagementRouter extends BaseRouter {
   constructor() {
     super(new Controller());
   }
@@ -13,22 +13,22 @@ module.exports = class ClientIntakeRouter extends BaseRouter {
     let mappings = [
       {
         method: "get",
-        path: "/engagement",
+        path: "/getEngagement",
         function: "getEngagements",
       },
       {
         method: "post",
-        path: "/engagement",
+        path: "/createEngagement",
         function: "createEngagement",
       },
       {
         method: "post",
-        path: "/engagement/:id",
+        path: "/updateEngagement/:id",
         function: "updateEngagement",
       },
       {
         method: "get",
-        path: "/engagement/:id/:userId",
+        path: "/deleteEngagement/:id/:userId",
         function: "deleteEngagement",
       },
     ];

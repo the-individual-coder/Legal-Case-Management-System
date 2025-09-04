@@ -13,13 +13,13 @@ export default function EngagementModal({
   const onFinish = async (values: any) => {
     try {
       if (editing) {
-        await post(`/engagement/engagement/${editing.id}`, {
+        await post(`/engagement/updateEngagement/${editing.id}`, {
           ...values,
           userId,
         });
         message.success("Engagement updated successfully");
       } else {
-        await post("/engagement/engagement", { ...values, userId });
+        await post("/engagement/createEngagement", { ...values, userId });
         message.success("Engagement created successfully");
       }
       onClose();

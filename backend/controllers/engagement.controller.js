@@ -16,15 +16,19 @@ module.exports = class EngagementController extends BaseController {
       const data = await Engagement.findAll({
         where,
         include: [
-          { model: Client, attributes: ["id", "firstName", "lastName"] },
-          { model: Case, attributes: ["id", "title"] },
+          {
+            model: Client,
+            as: "client",
+            attributes: ["id", "firstName", "lastName"],
+          },
+          { model: Case, as: "case", attributes: ["id", "title"] },
         ],
         order: [["createdAt", "DESC"]],
       });
 
-      return res.json({ success: true, data });
+      return this.createResponse({ success: true, data });
     } catch (err) {
-      return res.json({ success: false, message: err.message });
+      return this.createResponse({ success: false, message: err.message });
     }
   }
 
@@ -48,9 +52,9 @@ module.exports = class EngagementController extends BaseController {
         details: `Created engagement for client ${clientId}, case ${caseId}`,
       });
 
-      return res.json({ success: true, data: engagement });
+      return this.createResponse({ success: true, data: engagement });
     } catch (err) {
-      return res.json({ success: false, message: err.message });
+      return this.createResponse({ success: false, message: err.message });
     }
   }
 
@@ -62,7 +66,10 @@ module.exports = class EngagementController extends BaseController {
 
       const engagement = await Engagement.findByPk(id);
       if (!engagement)
-        return res.json({ success: false, message: "Engagement not found" });
+        return this.createResponse({
+          success: false,
+          message: "Engagement not found",
+        });
 
       await engagement.update(updateData);
 
@@ -74,9 +81,9 @@ module.exports = class EngagementController extends BaseController {
         details: `Updated engagement for client ${engagement.clientId}`,
       });
 
-      return res.json({ success: true, data: engagement });
+      return this.createResponse({ success: true, data: engagement });
     } catch (err) {
-      return res.json({ success: false, message: err.message });
+      return this.createResponse({ success: false, message: err.message });
     }
   }
 
@@ -87,7 +94,10 @@ module.exports = class EngagementController extends BaseController {
 
       const engagement = await Engagement.findByPk(id);
       if (!engagement)
-        return res.json({ success: false, message: "Engagement not found" });
+        return this.createResponse({
+          success: false,
+          message: "Engagement not found",
+        });
 
       await engagement.destroy();
 
@@ -99,9 +109,12 @@ module.exports = class EngagementController extends BaseController {
         details: `Deleted engagement for client ${engagement.clientId}`,
       });
 
-      return res.json({ success: true, message: "Deleted successfully" });
+      return this.createResponse({
+        success: true,
+        message: "Deleted successfully",
+      });
     } catch (err) {
-      return res.json({ success: false, message: err.message });
+      return this.createResponse({ success: false, message: err.message });
     }
   }
 };
