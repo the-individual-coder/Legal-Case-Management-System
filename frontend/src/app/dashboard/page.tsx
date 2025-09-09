@@ -189,7 +189,7 @@ export default function DashboardPage() {
                           {a.title || `Appointment #${a.id}`}
                         </div>
                         <div className="text-sm text-slate-500">
-                          {new Date(a.startAt).toLocaleString()}
+                          {new Date(a.scheduledAt).toLocaleString()}
                         </div>
                       </div>
                       <div className="text-sm text-slate-400">{a.status}</div>

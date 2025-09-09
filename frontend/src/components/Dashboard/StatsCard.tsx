@@ -19,7 +19,9 @@ export default function StatsCard({
     <Card className="rounded-2xl shadow-sm p-4">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-sm text-slate-500">{title}</div>
+          <div className="text-sm text-slate-500 whitespace-nowrap">
+            {title}
+          </div>
           <div className="text-2xl font-semibold text-slate-900">{value}</div>
           {description && (
             <div className="text-xs text-slate-500 mt-1">{description}</div>

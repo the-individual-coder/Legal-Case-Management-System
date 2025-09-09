@@ -17,7 +17,7 @@ export default function RecentActivityFeed({
   items: ActivityItem[];
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4">
+    <div className="bg-white rounded-2xl shadow-sm p-4 overflow-y-auto h-[349px]">
       <h3 className="text-lg font-semibold mb-3">Recent Activity</h3>
       <List
         itemLayout="horizontal"

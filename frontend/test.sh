@@ -17,7 +17,6 @@ mkdir -p src/app
 # Pages (App Router)
 # -------------------
 pages=(
-  "appointments/new"
   "clients/new"
   "engagements/new"
   "engagements/[id]"
