@@ -43,3 +43,43 @@ body {
   color: #0f172a;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
+
+@media screen and (min-width:767px) {
+  
+ .anticon.anticon-menu-unfold{
+    display: none;
+}
+}
+@media screen and (max-width:767px) {
+.toggle-sidebar  .sidebar{
+  position: fixed;
+  width: 0;
+  display: block !important;
+}
+.toggle-sidebar .anticon.anticon-menu-unfold{
+  position: absolute;
+  right: -28px;
+  top: 75px;
+  display: block;
+}
+.toggle-sidebar .menu-list{
+  visibility: hidden;
+}
+
+.sidebar{
+  transition: ease-out 0.3s;
+  display: block;
+      position: fixed;
+    z-index: 2;
+    height: 100vh;
+}
+
+ .anticon.anticon-menu-unfold{
+  position: absolute;
+  right: -28px;
+  top: 75px;
+   display: block;
+   z-index: 3;
+}
+
+}

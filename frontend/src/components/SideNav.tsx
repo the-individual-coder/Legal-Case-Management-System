@@ -26,7 +26,7 @@ export default function SideNav() {
     icon: i.icon,
   }));
   return (
-    <div className="p-4">
+    <div className="p-4 menu-list">
       <Menu mode="inline" selectedKeys={[pathname]} items={items} />
     </div>
   );
