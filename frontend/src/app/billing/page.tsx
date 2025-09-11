@@ -40,12 +40,28 @@ export default function BillingPage() {
     if (!canView) return;
     setLoading(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice/list`,
-        { credentials: "include" }
-      );
-      const json = await res.json();
-      setItems(json.data.data || []);
+      if (role == "client") {
+        const client = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=email:${session?.user?.email}`
+        );
+        const clientData = (await client.json()).data;
+        console.log("the client data, cl", clientData);
+        if (clientData.length > 0) {
+          console.log("hasidsid");
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice?search=clientId:${clientData[0]?.id}`
+          );
+          const json = await res.json();
+          setItems(json.data.data || []);
+        }
+      } else {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice/list`,
+          { credentials: "include" }
+        );
+        const json = await res.json();
+        setItems(json.data.data || []);
+      }
     } catch (err) {
       console.error(err);
       message.error("Failed to load invoices");

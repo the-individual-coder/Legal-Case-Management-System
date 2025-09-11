@@ -37,12 +37,27 @@ export default function AppointmentsPage() {
     if (!canView) return;
     setLoading(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/appointment/getAppointments`,
-        { credentials: "include" }
-      );
-      const json = await res.json();
-      setAppointments(json.data.data);
+      let res;
+      if (role == "client") {
+        const client = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=email:${data?.user?.email}`
+        );
+        const clientData = (await client.json()).data;
+        if (clientData.length > 0) {
+          res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/appointment?search=clientId:${clientData[0].id}`
+          );
+          const json = await res.json();
+          setAppointments(json.data);
+        }
+      } else {
+        res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/appointment/getAppointments`,
+          { credentials: "include" }
+        );
+        const json = await res.json();
+        setAppointments(json.data.data);
+      }
     } catch (err) {
       console.error(err);
     } finally {

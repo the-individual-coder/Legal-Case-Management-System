@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
       Case.hasMany(models.LawyerRecommendation, { foreignKey: "caseId" });
       Case.hasOne(models.CaseClosure, { foreignKey: "caseId" });
       Case.hasMany(models.Invoice, { foreignKey: "caseId" });
+      Case.hasMany(models.Engagement, {
+        as: "engagement", // Use the same alias you use in your include
+        foreignKey: "caseId",
+      });
     }
   }
   Case.init(

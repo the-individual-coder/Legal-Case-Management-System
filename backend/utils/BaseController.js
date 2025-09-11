@@ -12,7 +12,7 @@ const QUERIES = [INCLUDE, LIMIT, PAGE, ORDER];
 //defaults
 const DEFAULT_LIMIT = 10;
 const DEFAULT_PAGE = 0;
-const DEFAULT_ORDER = [['createdAt', 'DESC']];
+const DEFAULT_ORDER = [["createdAt", "DESC"]];
 
 const LoggerClass = require("./Logger.js");
 
@@ -71,7 +71,7 @@ module.exports = class BaseController {
   constructSort(sortBy) {
     if (!sortBy) return DEFAULT_ORDER;
     return sortBy.split(",").map((srt) => {
-      const [field, order = 'ASC'] = srt.split(":");
+      const [field, order = "ASC"] = srt.split(":");
       return [field, order.toUpperCase()];
     });
   }
@@ -84,7 +84,9 @@ module.exports = class BaseController {
       fields.split(",").forEach((field) => {
         const [key, value] = field.split(":");
         if (value?.startsWith(".*") && value.endsWith(".*")) {
-          where[key] = { [require("sequelize").Op.like]: `%${value.slice(2, -2)}%` };
+          where[key] = {
+            [require("sequelize").Op.like]: `%${value.slice(2, -2)}%`,
+          };
         } else {
           where[key] = value;
         }
@@ -96,8 +98,14 @@ module.exports = class BaseController {
       date_ranges.split(",").forEach((range) => {
         const [field, from, to] = range.split(":");
         where[field] = {
-          ...(from && { [require("sequelize").Op.gte]: new Date(`${from}T00:00:00.000+08:00`) }),
-          ...(to && { [require("sequelize").Op.lte]: new Date(`${to}T23:59:59.000+08:00`) }),
+          ...(from && {
+            [require("sequelize").Op.gte]: new Date(
+              `${from}T00:00:00.000+08:00`
+            ),
+          }),
+          ...(to && {
+            [require("sequelize").Op.lte]: new Date(`${to}T23:59:59.000+08:00`),
+          }),
         };
       });
     }
@@ -108,7 +116,10 @@ module.exports = class BaseController {
   constructOptions(req) {
     const where = this.constructSearch(req);
     const order = this.constructSort(req.query.sort);
-    const limit = req.query.paginate == "false" ? null : parseInt(req.query.limit) || DEFAULT_LIMIT;
+    const limit =
+      req.query.paginate == "false"
+        ? null
+        : parseInt(req.query.limit) || DEFAULT_LIMIT;
     const page = parseInt(req.query.page) || 1;
     const offset = limit ? (page - 1) * limit : null;
 
@@ -117,7 +128,9 @@ module.exports = class BaseController {
     if (offset !== null) options.offset = offset;
 
     if (req.query[INCLUDE]) {
-      options.include = req.query[INCLUDE].split(",").map((model) => ({ association: model }));
+      options.include = req.query[INCLUDE].split(",").map((model) => ({
+        association: model,
+      }));
     }
 
     return options;
@@ -129,7 +142,7 @@ module.exports = class BaseController {
       response.message = this.getError(error);
       response.error = error;
       response.status = error.status || (error.errors ? 422 : 500);
-    } else if (results && typeof results.count !== 'undefined') {
+    } else if (results && typeof results.count !== "undefined") {
       response.data = results.rows;
       response.count = results.count;
     } else {

@@ -37,12 +37,35 @@ export default function AppointmentFormModal({
   useEffect(() => {
     if (!allowed) return;
 
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/client/getClients`, {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((json) => setClients(json.data.data || []))
-      .catch(console.error);
+    if (role == "client") {
+      let ClientData: any;
+
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=email:${data?.user?.email}`
+      )
+        .then((res) => res.json())
+        .then((json) => (ClientData = json.data[0]))
+        .catch(console.error);
+
+      console.log("the client data", ClientData);
+      if (ClientData)
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=id:${ClientData?.id}`,
+          {
+            credentials: "include",
+          }
+        )
+          .then((res) => res.json())
+          .then((json) => setClients(json.data.data || []))
+          .catch(console.error);
+    } else {
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/client/getClients`, {
+        credentials: "include",
+      })
+        .then((res) => res.json())
+        .then((json) => setClients(json.data.data || []))
+        .catch(console.error);
+    }
 
     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/case/getCases`, {
       credentials: "include",
@@ -186,9 +209,15 @@ export default function AppointmentFormModal({
         <Form.Item label="Status" name="status" rules={[{ required: true }]}>
           <Select>
             <Select.Option value="pending">Pending</Select.Option>
-            <Select.Option value="confirmed">Confirmed</Select.Option>
-            <Select.Option value="completed">Completed</Select.Option>
-            <Select.Option value="canceled">Canceled</Select.Option>
+            <Select.Option disabled={role == "client"} value="confirmed">
+              Confirmed
+            </Select.Option>
+            <Select.Option disabled={role == "client"} value="completed">
+              Completed
+            </Select.Option>
+            <Select.Option disabled={role == "client"} value="canceled">
+              Canceled
+            </Select.Option>
           </Select>
         </Form.Item>
 

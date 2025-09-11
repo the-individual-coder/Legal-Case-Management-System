@@ -237,7 +237,7 @@ export default function DashboardPage() {
                       className="p-3 border rounded-lg flex justify-between"
                     >
                       <div>
-                        <div className="font-medium">#{inv.invoiceNumber}</div>
+                        <div className="font-medium">Invoice #{inv.id}</div>
                         <div className="text-sm text-slate-500">
                           Due {new Date(inv.dueDate).toLocaleDateString()}
                         </div>

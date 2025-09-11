@@ -1,14 +1,14 @@
-const {Activitylog} = require('../models')
-const BaseController = require('../utils/BaseController')
+const { ActivityLog } = require("../models");
+const BaseController = require("../utils/BaseController");
 
 module.exports = class ActivitylogController extends BaseController {
-    constructor(){
-        super(Activitylog)
-    }
+  constructor() {
+    super(ActivityLog);
+  }
 
-    async getActivitylogs(){
-        const activitylog = await Activitylog.findAll()
-        console.log("the activitylog")
-        return this.createResponse(activitylog)
-    }
-}
+  async getActivitylogs() {
+    const activitylog = await ActivityLog.findAll();
+    console.log("the activitylog", activitylog);
+    return this.createResponse(activitylog);
+  }
+};
