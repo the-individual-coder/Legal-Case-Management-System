@@ -8,6 +8,7 @@ const { DatabaseService, Case } = require("./models"); // ✅ works now
 const BillingController = require("./controllers/invoice.controller");
 const RouterMiddleware = require("./utils/RouterMiddleware");
 const upload = require("./middleware/upload");
+const DocumentController = require("./controllers/document.controller");
 app.use(express.json());
 // Allow any origin dynamically, still support credentials
 app.use(
@@ -30,6 +31,13 @@ app.post(
   upload.single("file"),
   BillingController.uploadProof
 );
+const documentControllerInstance = new DocumentController();
+app.post(
+  "/document/upload",
+  upload.single("file"),
+  documentControllerInstance.upload.bind(documentControllerInstance)
+);
+
 app.get("/case", async (req, res) => {
   try {
     const cases = await Case.findAll();
