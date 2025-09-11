@@ -1,6 +1,7 @@
 const { User } = require("../models");
 const BaseController = require("../utils/BaseController");
 const { getPermissionsByRole } = require("../utils/rbac.js");
+
 module.exports = class UserController extends BaseController {
   constructor() {
     super(User);
@@ -15,7 +16,7 @@ module.exports = class UserController extends BaseController {
 
       const users = await User.findAll({
         where,
-        attributes: ["id", "name", "email", "image"],
+        attributes: ["id", "name", "email", "image", "role", "permissions"],
       });
 
       return this.createResponse({ success: true, data: users });
@@ -24,6 +25,7 @@ module.exports = class UserController extends BaseController {
     }
   }
 
+  // POST /api/users/sync
   async syncUser(req, res) {
     try {
       const { email, name, image, providerId } = req.body;
@@ -35,42 +37,52 @@ module.exports = class UserController extends BaseController {
 
       // Find existing user by email
       let user = await User.findOne({ where: { email } });
-      console.log("the userr", user);
+      console.log("Existing user:", user);
+
       if (!user) {
-        // New user: create with default role 'client'
+        // New user: default role 'client'
+        const defaultRole = "client";
         user = await User.create({
           email,
           name,
           image,
-          role: "client",
-          providerId, // store Google sub/id if available
+          role: defaultRole,
+          providerId,
           status: "active",
-          permissions: getPermissionsByRole("client"), // initialize permissions
+          permissions: getPermissionsByRole(defaultRole), // action-based perms
         });
       } else {
-        // Existing user: update name/image if changed
+        // Update profile fields if changed
         user.name = name || user.name;
         user.image = image || user.image;
-        // Always update permissions based on current role
+
+        // Always refresh permissions based on *current* role
         user.permissions = getPermissionsByRole(user.role);
 
         await user.save();
       }
 
-      // Ensure permissions are always returned
+      // Return normalized response
       const permissions = getPermissionsByRole(user.role);
-      console.log("the permissions", permissions);
+      console.log("Synced permissions:", permissions);
+
       return this.createResponse({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        permissions,
-        image: user.image,
+        success: true,
+        data: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          permissions,
+          image: user.image,
+        },
       });
     } catch (error) {
       console.error("syncUser error:", error);
-      return this.createResponse({ error: "Internal server error" });
+      return this.createResponse({
+        success: false,
+        message: "Internal server error",
+      });
     }
   }
 };

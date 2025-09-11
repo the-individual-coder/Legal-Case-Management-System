@@ -16,4 +16,16 @@ module.exports = class ClientController extends BaseController {
       return this.createResponse({ success: false, message: err.message });
     }
   }
+
+  // GET /Client/list
+  async list(req, res) {
+    try {
+      const records = await Client.findAll({
+        order: [["createdAt", "DESC"]],
+      });
+      return this.createResponse({ success: true, data: records });
+    } catch (err) {
+      return this.createResponse({ success: false, message: err.message });
+    }
+  }
 };

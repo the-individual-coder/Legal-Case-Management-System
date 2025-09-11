@@ -1,5 +1,5 @@
-const BaseRouter = require("../../utils/BaseRouter.js")
-const Controller = require("../../controllers/client.controller.js")
+const BaseRouter = require("../../utils/BaseRouter.js");
+const Controller = require("../../controllers/client.controller.js");
 
 module.exports = class ClientRouter extends BaseRouter {
   constructor() {
@@ -12,11 +12,16 @@ module.exports = class ClientRouter extends BaseRouter {
   getAdditionalMapping = () => {
     let mappings = [
       {
-        method: 'get',
-        path: '/getClients',
-        function: "getClients"
+        method: "get",
+        path: "/getClients",
+        function: "getClients",
       },
-    ]
+      {
+        method: "get",
+        path: "/list",
+        function: "list",
+      },
+    ];
     return mappings;
   };
-}
+};

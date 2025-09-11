@@ -1,11 +1,13 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 5002;
 const path = require("path");
 const { DatabaseService, Case } = require("./models"); // ✅ works now
+const BillingController = require("./controllers/invoice.controller");
 const RouterMiddleware = require("./utils/RouterMiddleware");
-
+const upload = require("./middleware/upload");
 app.use(express.json());
 // Allow any origin dynamically, still support credentials
 app.use(
@@ -23,7 +25,11 @@ app.use(
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
-
+app.post(
+  "/billing/upload-proof",
+  upload.single("file"),
+  BillingController.uploadProof
+);
 app.get("/case", async (req, res) => {
   try {
     const cases = await Case.findAll();

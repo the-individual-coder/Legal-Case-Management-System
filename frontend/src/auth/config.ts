@@ -1,3 +1,4 @@
+// src/lib/authConfig.ts
 import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthOptions } from "next-auth";
 
@@ -13,33 +14,36 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, account, profile }) {
-      console.log("jwt callback", { token, account, profile })
+    async jwt({ token, account }) {
       try {
-        // Run sync on first login (account is defined) OR always if you want fresh role each time
         if (token?.email) {
           const backend =
-            (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.BACKEND_URL || "").replace(/\/+$/, "");
+            (process.env.NEXT_PUBLIC_API_BASE_URL ||
+              process.env.BACKEND_URL ||
+              "").replace(/\/+$/, "");
 
-            const res = await fetch(`${backend}/user/syncUser`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: token.email,
-                name: token.name || token?.name,
-                image: token.picture,      // renamed from avatar → image
-                providerId: token.sub || token.id, // Google account ID
-              }),
-            });
-            
+          const res = await fetch(`${backend}/user/syncUser`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: token.email,
+              name: token.name,
+              image: token.picture, // comes from Google profile
+              providerId: token.sub || token.id, // Google account ID
+            }),
+          });
+
           if (res.ok) {
-
-            const data: any = (await res.json()).data;
+            const { data } = (await res.json()).data;
+            console.log("this is the datazaa", data)
             token.id = data.id ?? token.sub;
             token.role = data.role ?? "client";
-            token.permissions = data.permissions ?? [];
+            token.permissions = Array.isArray(data.permissions)
+              ? data.permissions
+              : [];
+            token.picture = data.image ?? token.picture;
           } else {
-            console.error("Sync failed:", await res.text());
+            console.error("User sync failed:", await res.text());
             token.role = token.role ?? "client";
             token.permissions = token.permissions ?? [];
           }
@@ -51,13 +55,17 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+
     async session({ session, token }) {
-        console.log("=== SESSION CALLBACK ===", { session, token });
       if (token) {
         session.user = session.user ?? ({} as any);
         (session.user as any).id = (token as any).id ?? (token as any).sub;
         (session.user as any).role = (token as any).role ?? "client";
-        (session.user as any).permissions = (token as any).permissions ?? [];
+        (session.user as any).permissions = Array.isArray(
+          (token as any).permissions
+        )
+          ? (token as any).permissions
+          : [];
         (session.user as any).image =
           (token as any).picture ?? session.user?.image;
       }

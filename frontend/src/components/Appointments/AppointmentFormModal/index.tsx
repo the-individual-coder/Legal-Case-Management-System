@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Input, DatePicker, Select, Button, App } from "antd";
-
 import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
+import { PERMISSIONS, can } from "@/lib/rbac";
 
 type Props = {
   open: boolean;
@@ -23,14 +23,20 @@ export default function AppointmentFormModal({
   const [cases, setCases] = useState<any[]>([]);
   const [lawyers, setLawyers] = useState<any[]>([]);
 
-  // Access session data
   const { data, status } = useSession();
   const { message } = App.useApp();
-  // Check if the session is still loading or if the user is logged in
+
   const userId = status === "authenticated" ? data?.user?.id : null;
+  const role = (data?.user as any)?.role ?? "client";
+
+  const canCreate = can(role, PERMISSIONS.APPOINTMENTS.CREATE);
+  const canUpdate = can(role, PERMISSIONS.APPOINTMENTS.UPDATE);
+  const allowed = editing ? canUpdate : canCreate;
 
   // Fetch dropdown options
   useEffect(() => {
+    if (!allowed) return;
+
     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/client/getClients`, {
       credentials: "include",
     })
@@ -51,10 +57,7 @@ export default function AppointmentFormModal({
       .then((res) => res.json())
       .then((json) => setLawyers(json.data.data || []))
       .catch(console.error);
-
-    console.log("the dataa", data);
-    console.log("the statusssss", status);
-  }, []);
+  }, [allowed]);
 
   // Prefill form in edit mode
   useEffect(() => {
@@ -73,13 +76,17 @@ export default function AppointmentFormModal({
       message.error("User not logged in");
       return;
     }
+    if (!allowed) {
+      message.error("You do not have permission to perform this action");
+      return;
+    }
 
     try {
       const values = await form.validateFields();
 
       const payload = {
         ...values,
-        scheduledAt: values.scheduledAt.toISOString(), // combine into single datetime
+        scheduledAt: values.scheduledAt.toISOString(),
       };
 
       const method = editing ? "PUT" : "POST";
@@ -94,14 +101,37 @@ export default function AppointmentFormModal({
         body: JSON.stringify(payload),
       });
 
-      const json = await res.json();
-      console.log("the json", json);
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
       message.success("Appointment saved");
       onClose();
     } catch (err: any) {
-      message.error(err.message || "Validation failed");
+      console.error(err);
+      message.error(err.message || "Failed to save appointment");
     }
   };
+
+  if (!allowed) {
+    return (
+      <Modal
+        title="Unauthorized"
+        open={open}
+        onCancel={onClose}
+        footer={[
+          <Button key="close" onClick={onClose}>
+            Close
+          </Button>,
+        ]}
+      >
+        <p>
+          You do not have permission to {editing ? "edit" : "create"}{" "}
+          appointments.
+        </p>
+      </Modal>
+    );
+  }
 
   return (
     <Modal

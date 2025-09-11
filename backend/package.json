@@ -6,17 +6,26 @@
   "module": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "postinstall": "puppeteer-install"
   },
   "author": "rm",
   "license": "ISC",
   "dependencies": {
+    "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "fs-extra": "^11.3.1",
+    "handlebars": "^4.7.8",
+    "multer": "^2.0.2",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.16.2",
     "pg-hstore": "^2.3.4",
+    "puppeteer": "^24.19.0",
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
+    "uuid": "^13.0.0",
     "winston": "^3.17.0"
   }
 }
