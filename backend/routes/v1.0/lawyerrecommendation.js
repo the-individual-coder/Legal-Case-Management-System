@@ -1,5 +1,5 @@
-const BaseRouter = require("../../utils/BaseRouter.js")
-const Controller = require("../../controllers/lawyerrecommendation.controller.js")
+const BaseRouter = require("../../utils/BaseRouter.js");
+const Controller = require("../../controllers/lawyerrecommendation.controller.js");
 
 module.exports = class LawyerrecommendationRouter extends BaseRouter {
   constructor() {
@@ -12,11 +12,21 @@ module.exports = class LawyerrecommendationRouter extends BaseRouter {
   getAdditionalMapping = () => {
     let mappings = [
       {
-        method: 'get',
-        path: '/getLawyerrecommendations',
-        function: "getLawyerrecommendations"
+        method: "get",
+        path: "/getLawyerrecommendations",
+        function: "getLawyerrecommendations",
       },
-    ]
+      {
+        method: "get",
+        path: "/recommend/:caseId/:userId",
+        function: "recommend",
+      },
+      {
+        method: "post",
+        path: "/assign",
+        function: "assign",
+      },
+    ];
     return mappings;
   };
-}
+};

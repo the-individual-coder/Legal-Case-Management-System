@@ -118,7 +118,7 @@ export default function CaseFormModal({ visible, editing, onClose }: Props) {
       open={visible}
       onCancel={onClose}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item name="title" label="Title" rules={[{ required: true }]}>

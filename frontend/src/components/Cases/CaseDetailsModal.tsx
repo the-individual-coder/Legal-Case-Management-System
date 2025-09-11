@@ -70,7 +70,7 @@ export default function CaseDetailsModal({
         </Button>,
       ]}
       width={900}
-      destroyOnClose
+      destroyOnHidden
     >
       {loading ? (
         <Spin />

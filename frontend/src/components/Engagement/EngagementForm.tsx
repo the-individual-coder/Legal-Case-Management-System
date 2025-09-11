@@ -111,7 +111,7 @@ export default function EngagementFormModal({ open, editing, onClose }: Props) {
       open={open}
       onCancel={onClose}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item name="caseId" label="Case" rules={[{ required: true }]}>

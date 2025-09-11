@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { PERMISSIONS, can } from "@/lib/rbac";
 import CaseFormModal from "@/components/Cases/CaseFormModal";
 import CaseDetailsModal from "@/components/Cases/CaseDetailsModal";
+import LawyerRecommenderModal from "@/components/LawyerRecommender/LawyerRecommenderModal";
 
 type CaseRow = {
   id: number;
@@ -18,7 +19,7 @@ type CaseRow = {
   description?: string;
   status?: string;
   priority?: string;
-  client?: { id: number; firstName: string; lastName: string };
+  Client?: { id: number; firstName: string; lastName: string };
   AssignedLawyer?: { id: number; name?: string };
   createdAt?: string;
 };
@@ -168,6 +169,9 @@ export default function CasesPage() {
                     >
                       Assign
                     </Button>
+                    <Button onClick={() => setSelectedCase(r)} type="primary">
+                      Recommend Lawyer
+                    </Button>
                   </>
                 )}
               </Space>
@@ -185,6 +189,15 @@ export default function CasesPage() {
             setEditing(null);
             fetchCases();
           }}
+        />
+      )}
+
+      {selectedCase && (
+        <LawyerRecommenderModal
+          caseId={selectedCase.id}
+          open={!!selectedCase}
+          onClose={() => setSelectedCase(null)}
+          fetchCases={fetchCases}
         />
       )}
 
