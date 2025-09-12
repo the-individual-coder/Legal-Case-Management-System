@@ -107,7 +107,7 @@ export default function CaseFormModal({ visible, editing, onClose }: Props) {
           </Button>,
         ]}
       >
-        You don't have permission to create or edit cases.
+        You don&apos;t have permission to create or edit cases.
       </Modal>
     );
   }

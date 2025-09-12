@@ -47,8 +47,6 @@ export default function LawyerRecommenderModal({
         body: JSON.stringify({ caseId, lawyerId, userId }),
       }
     );
-    const json = await res.json();
-
     message.success("Lawyer assigned successfully");
     onClose();
     fetchCases();
@@ -65,6 +63,7 @@ export default function LawyerRecommenderModal({
         dataSource={lawyers}
         renderItem={(lawyer) => (
           <List.Item
+            key={lawyer.lawyerId}
             actions={[
               <Button
                 type="primary"

@@ -100,7 +100,7 @@ export default function EngagementFormModal({ open, editing, onClose }: Props) {
           </Button>,
         ]}
       >
-        You don't have permission.
+        You don&apos;t have permission.
       </Modal>
     );
   }
