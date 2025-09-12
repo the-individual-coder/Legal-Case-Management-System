@@ -66,6 +66,7 @@ export default function LawyerRecommenderModal({
             key={lawyer.lawyerId}
             actions={[
               <Button
+                key={`assign-${lawyer.lawyerId}`} // ✅ Fix: add key prop here
                 type="primary"
                 onClick={() => handleAssign(lawyer.lawyerId)}
               >
