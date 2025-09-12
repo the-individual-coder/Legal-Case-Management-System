@@ -35,7 +35,6 @@ export const authOptions: NextAuthOptions = {
 
           if (res.ok) {
             const { data } = (await res.json()).data;
-            console.log("this is the datazaa", data)
             token.id = data.id ?? token.sub;
             token.role = data.role ?? "client";
             token.permissions = Array.isArray(data.permissions)

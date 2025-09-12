@@ -1,4 +1,4 @@
-// src/backend/utils/logActivity.ts
+// src/backend/utils/logActivity.js
 const { ActivityLog } = require("../models");
 module.exports = async function logActivity({
   userId,

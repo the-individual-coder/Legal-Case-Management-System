@@ -22,6 +22,7 @@ const {
   Document,
   User,
 } = require("../models");
+// const logActivity = require("../utils/logActivity");
 const logActivity = require("../utils/logActivity");
 const { getPermissionsByRole, PERMISSIONS } = require("../utils/rbac");
 

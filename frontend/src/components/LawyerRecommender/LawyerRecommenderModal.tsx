@@ -38,7 +38,7 @@ export default function LawyerRecommenderModal({
   }, [open, caseId, userId]);
 
   const handleAssign = async (lawyerId: number) => {
-    const res = await fetch(
+    await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/LawyerRecommendation/assign`,
       {
         method: "POST",
