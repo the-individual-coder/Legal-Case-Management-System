@@ -189,7 +189,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     key: "clients",
     label: "Clients",
-    href: "/clients/new",
+    href: "/clients",
     icon: <UserAddOutlined />,
     permission: PERMISSIONS.CLIENTS.VIEW,
   },

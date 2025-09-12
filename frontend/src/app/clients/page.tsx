@@ -43,11 +43,7 @@ export default function ClientsPage() {
         { credentials: "include" }
       );
       const json = await res.json();
-      if (json.success) {
-        setClients(json.data.data || json.data || []);
-      } else {
-        antdMessage.error(json.message || "Failed to load clients");
-      }
+      setClients(json.data.data || json.data || []);
     } catch (err: any) {
       antdMessage.error(err.message || "Failed to load clients");
     } finally {
@@ -76,13 +72,9 @@ export default function ClientsPage() {
               credentials: "include",
             }
           );
-          const json = await res.json();
-          if (json.success) {
-            antdMessage.success("Client deleted");
-            fetchClients();
-          } else {
-            antdMessage.error(json.message || "Failed to delete client");
-          }
+          await res.json();
+          antdMessage.success("Client deleted");
+          fetchClients();
         } catch (err: any) {
           antdMessage.error(err.message || "Failed to delete client");
         }

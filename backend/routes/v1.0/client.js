@@ -13,13 +13,33 @@ module.exports = class ClientRouter extends BaseRouter {
     let mappings = [
       {
         method: "get",
+        path: "/list",
+        function: "list",
+      },
+      {
+        method: "get",
         path: "/getClients",
         function: "getClients",
       },
       {
         method: "get",
-        path: "/list",
-        function: "list",
+        path: "/:id",
+        function: "getClientById",
+      },
+      {
+        method: "post",
+        path: "/createClient/:userId",
+        function: "createClient",
+      },
+      {
+        method: "put",
+        path: "/updateClient/:id/:userId",
+        function: "updateClient",
+      },
+      {
+        method: "delete",
+        path: "/deleteClient/:id/:userId",
+        function: "deleteClient",
       },
     ];
     return mappings;
