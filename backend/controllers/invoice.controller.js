@@ -23,7 +23,7 @@ const {
   User,
 } = require("../models");
 // const logActivity = require("../utils/logActivity");
-const logActivity = require("../utils/logActivity");
+const logActivity = require("../utils/logActivity.js");
 const { getPermissionsByRole, PERMISSIONS } = require("../utils/rbac");
 
 // Cloudinary config (ensure env vars set)

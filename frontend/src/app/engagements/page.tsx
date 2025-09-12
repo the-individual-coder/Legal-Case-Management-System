@@ -192,7 +192,10 @@ export default function EngagementsPage() {
             r.Agreement?.filePath ? (
               <Button
                 icon={<FileTextOutlined />}
-                onClick={() => window.open(r?.Agreement.filePath, "_blank")}
+                onClick={() => {
+                  const filePath = r?.Agreement?.filePath;
+                  if (filePath) window.open(filePath, "_blank");
+                }}
               >
                 Open
               </Button>
