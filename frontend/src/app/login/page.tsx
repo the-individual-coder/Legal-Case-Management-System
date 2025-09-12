@@ -10,13 +10,21 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center h-screen bg-[#0F172A]">
       <Card className="w-96 p-8 text-center bg-[#1E293B]">
-        <Image src="/logo.png" alt="D&S Law" width={80} height={80} className="mx-auto mb-4" />
-        <Title level={3} className="text-white mb-6">D&S Law Portal</Title>
+        <Image
+          src="/logo.png"
+          alt="D&S Law"
+          width={80}
+          height={80}
+          className="mx-auto mb-4"
+        />
+        <Title level={3} className="text-white mb-6">
+          D&S Law Portal
+        </Title>
         <Button
           type="primary"
           size="large"
           className="w-full"
-          onClick={() => signIn('google',{ callbackUrl: "/dashboard" })}
+          onClick={() => signIn("google", { callbackUrl: "/" })}
         >
           Continue with Google
         </Button>

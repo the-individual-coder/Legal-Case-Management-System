@@ -1,20 +1,37 @@
 "use client";
+
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Spin } from "antd";
 import { useRouter } from "next/navigation";
+import type { Role } from "@/lib/rbac";
 
 export default function Home() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
-    } else {
-      router.push("/dashboard");
+      return;
     }
-  }, [status, router]);
+
+    if (status === "authenticated") {
+      const role = session?.user?.role as Role | undefined;
+
+      const roleRedirects: Record<Role, string> = {
+        admin: "/dashboard",
+        lawyer: "/cases",
+        reviewer: "/documents",
+        staff: "/appointments",
+        client: "/appointments",
+      };
+
+      const redirectTo =
+        role && roleRedirects[role] ? roleRedirects[role] : "/dashboard";
+      router.push(redirectTo);
+    }
+  }, [status, session, router]);
 
   if (status === "loading") {
     return (
@@ -23,4 +40,6 @@ export default function Home() {
       </div>
     );
   }
+
+  return null;
 }
