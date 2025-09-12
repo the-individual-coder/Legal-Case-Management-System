@@ -21,7 +21,6 @@ const {
   Note,
   ActivityLog,
 } = require("../models");
-const logActivity = require("../utils/logActivity");
 const { getPermissionsByRole, PERMISSIONS } = require("../utils/rbac");
 
 // configure cloudinary
@@ -104,7 +103,7 @@ class DocumentController extends BaseController {
       });
       console.log("afterr  pzz");
       // log activity
-      await logActivity({
+      await this.logActivity({
         userId: createdBy || null,
         action: "upload",
         targetType: "Document",
@@ -184,7 +183,7 @@ class DocumentController extends BaseController {
         content: `Document Review (${status}): ${notes || ""}`,
       });
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "review",
         targetType: "Document",
@@ -249,7 +248,7 @@ class DocumentController extends BaseController {
 
       await fs.remove(tempPath).catch(() => {});
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "ocr",
         targetType: "Document",

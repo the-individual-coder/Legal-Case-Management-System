@@ -7,7 +7,6 @@ const fs = require("fs-extra");
 const BaseController = require("../utils/BaseController");
 const { renderTemplateToPdf } = require("../utils/contractGenerator");
 const { Engagement, Case, Client, Document, User } = require("../models");
-const logActivity = require("../utils/logActivity"); // your wrapper, adjust path
 const { getPermissionsByRole, PERMISSIONS } = require("../utils/rbac");
 
 // Configure Cloudinary using env vars (set in your deployment)
@@ -105,7 +104,7 @@ class EngagementController extends BaseController {
         status: status ?? "active",
       });
 
-      await logActivity({
+      await this.logActivity({
         userId: actorId,
         action: "create",
         targetType: "Engagement",
@@ -199,7 +198,7 @@ class EngagementController extends BaseController {
     engagement.agreementDocId = doc.id;
     await engagement.save();
 
-    await logActivity({
+    await this.logActivity({
       userId: actorId,
       action: "generate",
       targetType: "Engagement",
@@ -273,7 +272,7 @@ class EngagementController extends BaseController {
       engagement.status = status ?? engagement.status;
       await engagement.save();
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "update",
         targetType: "Engagement",
@@ -323,7 +322,7 @@ class EngagementController extends BaseController {
 
       await engagement.destroy();
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "delete",
         targetType: "Engagement",

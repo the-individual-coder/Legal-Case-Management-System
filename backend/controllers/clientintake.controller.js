@@ -1,7 +1,6 @@
 // backend/controllers/ClientIntakeController.js
 const { ClientIntake, User, Client } = require("../models");
 const BaseController = require("../utils/BaseController");
-const logActivity = require("../utils/logActivity.js"); // assume exists
 const { getPermissionsByRole } = require("../utils/rbac.js");
 const { PERMISSIONS } = require("../utils/rbac.js"); // or adjust import path
 
@@ -76,7 +75,7 @@ module.exports = class ClientIntakeController extends BaseController {
         intakeNotes,
       });
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "create",
         targetType: "ClientIntake",
@@ -124,7 +123,7 @@ module.exports = class ClientIntakeController extends BaseController {
 
       await intake.save();
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "update",
         targetType: "ClientIntake",
@@ -167,7 +166,7 @@ module.exports = class ClientIntakeController extends BaseController {
 
       await rec.destroy();
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "delete",
         targetType: "ClientIntake",

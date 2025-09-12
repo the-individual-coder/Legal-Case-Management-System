@@ -1,6 +1,6 @@
 const { LawyerRecommendation, Case, User } = require("../models");
 const BaseController = require("../utils/BaseController");
-const logActivity = require("../utils/logActivity");
+
 module.exports = class LawyerrecommendationController extends BaseController {
   constructor() {
     super(LawyerRecommendation);
@@ -49,7 +49,7 @@ module.exports = class LawyerrecommendationController extends BaseController {
         });
       }
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "recommend",
         targetType: "Case",
@@ -83,7 +83,7 @@ module.exports = class LawyerrecommendationController extends BaseController {
       caseData.assignedLawyerId = lawyerId;
       await caseData.save();
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "assign",
         targetType: "Case",

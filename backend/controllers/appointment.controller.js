@@ -1,5 +1,4 @@
 const { Appointment, Case, Client, User } = require("../models");
-const logActivity = require("../utils/LogActivity");
 const BaseController = require("../utils/BaseController");
 const { Op } = require("sequelize");
 module.exports = class AppointmentController extends BaseController {
@@ -98,7 +97,7 @@ module.exports = class AppointmentController extends BaseController {
       });
 
       // Log activity
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "create",
         targetType: "Appointment",
@@ -126,7 +125,7 @@ module.exports = class AppointmentController extends BaseController {
 
       await appointment.update(req.body);
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "update",
         targetType: "Appointment",
@@ -155,7 +154,7 @@ module.exports = class AppointmentController extends BaseController {
 
       await appointment.destroy();
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "delete",
         targetType: "Appointment",
