@@ -22,8 +22,6 @@ const {
   Document,
   User,
 } = require("../models");
-// const logActivity = require("../utils/logActivity");
-const logActivity = require("../utils/logActivity.js");
 const { getPermissionsByRole, PERMISSIONS } = require("../utils/rbac");
 
 // Cloudinary config (ensure env vars set)
@@ -68,7 +66,7 @@ class InvoiceController extends BaseController {
         { where: { id: invoiceId } }
       );
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "upload",
         targetType: "Invoice",
@@ -188,7 +186,7 @@ class InvoiceController extends BaseController {
         status: status ?? "pending",
       });
 
-      await logActivity({
+      await this.logActivity({
         userId: actorId || null,
         action: "create",
         targetType: "Invoice",
@@ -236,7 +234,7 @@ class InvoiceController extends BaseController {
         status: status ?? invoice.status,
       });
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "update",
         targetType: "Invoice",
@@ -305,7 +303,7 @@ class InvoiceController extends BaseController {
         }
       }
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "pay",
         targetType: "Invoice",
@@ -346,7 +344,7 @@ class InvoiceController extends BaseController {
 
       await invoice.destroy();
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "delete",
         targetType: "Invoice",
@@ -386,7 +384,7 @@ class InvoiceController extends BaseController {
         status: defaultRetainer > 0 ? "pending" : "paid",
       });
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "create",
         targetType: "Invoice",

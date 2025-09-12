@@ -8,7 +8,7 @@ const DATE_RANGE = "date_range";
 const KEYWORD = "keyword";
 
 const QUERIES = [INCLUDE, LIMIT, PAGE, ORDER];
-
+const { ActivityLog } = require("../models");
 //defaults
 const DEFAULT_LIMIT = 10;
 const DEFAULT_PAGE = 0;
@@ -24,6 +24,19 @@ module.exports = class BaseController {
     }
   }
 
+  async logActivity({ userId, action, targetType, targetId, details = "" }) {
+    try {
+      await ActivityLog.create({
+        userId,
+        action,
+        targetType,
+        targetId,
+        details,
+      });
+    } catch (err) {
+      console.error("Failed to log activity:", err);
+    }
+  }
   async find(req) {
     try {
       const options = this.constructOptions(req);
