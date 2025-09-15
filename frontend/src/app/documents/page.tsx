@@ -11,7 +11,7 @@ export default function DocumentsPage() {
   const { modal, message } = App.useApp();
   const { data: session, status } = useSession();
   const userId = status === "authenticated" ? (session?.user as any)?.id : null;
-
+  const role = (session?.user as any)?.role ?? "client";
   const [loading, setLoading] = useState(true);
   const [docs, setDocs] = useState<any[]>([]);
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -21,12 +21,21 @@ export default function DocumentsPage() {
   const fetchDocs = async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/document/list`,
-        { credentials: "include" }
-      );
-      const json = await res.json();
-      setDocs(json.data.data || []);
+      let res;
+      if (role !== "staff" && role !== "admin") {
+        res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/document?search=createdBy:${session?.user?.id}&include=creator`
+        );
+        const json = await res.json();
+        setDocs(json.data);
+      } else {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/document/list`,
+          { credentials: "include" }
+        );
+        const json = await res.json();
+        setDocs(json.data.data || []);
+      }
     } catch (err) {
       console.error(err);
       message.error("Failed to load documents");

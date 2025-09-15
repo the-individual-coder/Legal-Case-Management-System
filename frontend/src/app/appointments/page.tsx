@@ -45,7 +45,7 @@ export default function AppointmentsPage() {
         const clientData = (await client.json()).data;
         if (clientData.length > 0) {
           res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/appointment?search=clientId:${clientData[0].id}`
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/appointment?search=clientId:${clientData[0].id}&include=Case,client,lawyer`
           );
           const json = await res.json();
           setAppointments(json.data);

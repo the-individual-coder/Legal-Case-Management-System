@@ -33,40 +33,49 @@ export default function AppointmentFormModal({
   const canUpdate = can(role, PERMISSIONS.APPOINTMENTS.UPDATE);
   const allowed = editing ? canUpdate : canCreate;
 
+  const fetchData = async () => {
+    if (role === "client") {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=email:${data?.user?.email}`
+        );
+        const json = await response.json();
+
+        const ClientData = json.data[0];
+
+        if (ClientData) {
+          const detailResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=id:${ClientData?.id}`,
+            {
+              credentials: "include",
+            }
+          );
+          const detailJson = await detailResponse.json();
+          setClients(detailJson.data || []);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/client/getClients`,
+          {
+            credentials: "include",
+          }
+        );
+        const json = await response.json();
+        setClients(json.data.data || []);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
   // Fetch dropdown options
   useEffect(() => {
     if (!allowed) return;
 
-    if (role == "client") {
-      let ClientData: any;
-
-      fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=email:${data?.user?.email}`
-      )
-        .then((res) => res.json())
-        .then((json) => (ClientData = json.data[0]))
-        .catch(console.error);
-
-      console.log("the client data", ClientData);
-      if (ClientData)
-        fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=id:${ClientData?.id}`,
-          {
-            credentials: "include",
-          }
-        )
-          .then((res) => res.json())
-          .then((json) => setClients(json.data.data || []))
-          .catch(console.error);
-    } else {
-      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/client/getClients`, {
-        credentials: "include",
-      })
-        .then((res) => res.json())
-        .then((json) => setClients(json.data.data || []))
-        .catch(console.error);
-    }
-
+    fetchData();
     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/case/getCases`, {
       credentials: "include",
     })

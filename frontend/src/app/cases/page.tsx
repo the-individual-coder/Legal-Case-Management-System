@@ -45,12 +45,20 @@ export default function CasesPage() {
     if (!canView) return;
     setLoading(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/case/list`,
-        { credentials: "include" }
-      );
-      const json = await res.json();
-      setItems(json.data.data || []);
+      let res;
+      if (role == "lawyer") {
+        res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/case?search=assignedLawyerId:${session?.user?.id}`
+        );
+        const json = await res.json();
+        setItems(json.data);
+      } else {
+        res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/case/list`, {
+          credentials: "include",
+        });
+        const json = await res.json();
+        setItems(json.data.data || []);
+      }
     } catch (err) {
       console.error(err);
       message.error("Failed to load cases");

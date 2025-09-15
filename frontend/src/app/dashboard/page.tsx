@@ -41,6 +41,9 @@ type DashboardResponse = {
 export default function DashboardPage() {
   const { data: session } = useSession();
   const role = (session?.user as any)?.role ?? "client";
+  const id = session?.user.id;
+  const email = session?.user.email;
+  console.log("the ses, se", session?.user);
   const perms = (session?.user as any)?.permissions ?? [];
 
   const [loading, setLoading] = useState(true);
@@ -54,7 +57,7 @@ export default function DashboardPage() {
       setLoading(true);
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/case/dashboard`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/case/dashboard/${role}/${id}/${email}`,
           {
             credentials: "include",
           }
@@ -161,9 +164,8 @@ export default function DashboardPage() {
           </Col>
         )}
       </Row>
-
-      {canSeeCases && (
-        <Row gutter={[16, 16]}>
+      <Row gutter={[16, 16]}>
+        {canSeeCases && (
           <Col xs={24} lg={16}>
             <div className="bg-white rounded-2xl shadow-sm p-4">
               <h3 className="text-lg font-semibold mb-3">Cases trend</h3>
@@ -184,13 +186,11 @@ export default function DashboardPage() {
               </div>
             </div>
           </Col>
-
-          <Col xs={24} lg={8}>
-            <RecentActivityFeed items={data?.recentActivity} />
-          </Col>
-        </Row>
-      )}
-
+        )}
+        <Col xs={24} lg={8}>
+          <RecentActivityFeed items={data?.recentActivity} />
+        </Col>
+      </Row>
       <Row gutter={[16, 16]}>
         {canSeeAppointments && (
           <Col xs={24} md={12}>

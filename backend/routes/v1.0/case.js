@@ -18,7 +18,7 @@ module.exports = class CaseRouter extends BaseRouter {
       },
       {
         method: "get",
-        path: "/dashboard",
+        path: "/dashboard/:role/:userId/:email",
         function: "getDashboard",
       },
       // GET /case/list

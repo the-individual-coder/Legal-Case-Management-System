@@ -1,6 +1,6 @@
-const { LawyerRecommendation, Case, User } = require("../models");
+const { LawyerRecommendation, Case, User, Appointment } = require("../models");
 const BaseController = require("../utils/BaseController");
-
+const { Op } = require("sequelize");
 module.exports = class LawyerrecommendationController extends BaseController {
   constructor() {
     super(LawyerRecommendation);
@@ -18,7 +18,6 @@ module.exports = class LawyerrecommendationController extends BaseController {
       const { caseId, userId } = req.params;
 
       const caseData = await Case.findByPk(caseId);
-      console.log("the case data", caseData);
       if (!caseData) {
         return this.createResponse({
           success: false,
@@ -26,18 +25,43 @@ module.exports = class LawyerrecommendationController extends BaseController {
         });
       }
 
-      // Fetch all lawyers
+      // Fetch all active lawyers
       const lawyers = await User.findAll({
         where: { role: "lawyer", status: "active" },
       });
 
-      // Simple scoring (later: add ML or workload check)
-      const recommendations = lawyers.map((lawyer) => ({
-        lawyerId: lawyer.id,
-        lawyerName: lawyer.name,
-        score: Math.floor(Math.random() * 100), // placeholder score
-        notes: `Auto-recommended for case ${caseData.title}`,
-      }));
+      // Get the date range for this case (assuming the case has a startDate and endDate)
+      const caseStartDate = caseData.startDate;
+      const caseEndDate = caseData.endDate;
+
+      // Calculate lawyer scores based on availability
+      const recommendations = await Promise.all(
+        lawyers.map(async (lawyer) => {
+          // Fetch lawyer appointments within the case time frame
+          const appointments = await Appointment.findAll({
+            where: {
+              lawyerId: lawyer.id,
+              scheduledAt: {
+                [Op.between]: [caseStartDate, caseEndDate],
+              },
+            },
+          });
+
+          // Calculate availability score (higher is more available)
+          const availabilityScore = 100 - appointments.length * 10; // Simple scoring logic
+
+          // Generate the recommendation object
+          return {
+            lawyerId: lawyer.id,
+            lawyerName: lawyer.name,
+            score: availabilityScore, // Add lawyer availability score
+            notes: `Auto-recommended for case ${caseData.title} based on availability`,
+          };
+        })
+      );
+
+      // Sort lawyers by availability score (higher score = more available)
+      recommendations.sort((a, b) => b.score - a.score);
 
       // Save recommendations
       for (const rec of recommendations) {
@@ -49,18 +73,19 @@ module.exports = class LawyerrecommendationController extends BaseController {
         });
       }
 
+      // Log the activity
       await this.logActivity({
         userId,
         action: "recommend",
         targetType: "Case",
         targetId: caseId,
-        details: `Generated lawyer recommendations for case ${caseId}`,
+        details: `Generated lawyer recommendations for case ${caseId} based on availability`,
       });
 
       return this.createResponse({
         success: true,
         data: recommendations,
-        message: "Recommendations generated",
+        message: "Recommendations generated based on availability",
       });
     } catch (err) {
       return this.createResponse({ success: false, message: err.message });

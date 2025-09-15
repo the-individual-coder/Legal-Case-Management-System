@@ -44,10 +44,7 @@ class DocumentController extends BaseController {
       const { caseId, createdBy } = req.body;
 
       if (!file) {
-        return this.createResponse(
-          { success: false, message: "No file uploaded" },
-          400
-        );
+        return res.json({ success: false, message: "No file uploaded" }, 400);
       }
 
       // optional: validate caseId exists
@@ -111,10 +108,10 @@ class DocumentController extends BaseController {
         details: `Uploaded document ${doc.title} for case ${caseId || "N/A"}`,
       });
       console.log("afterr  pzzss");
-      return this.createResponse({ success: true, data: doc });
+      return res.json({ success: true, data: doc });
     } catch (err) {
       console.error("Document.upload error:", err);
-      return this.createResponse({ success: false, message: err.message });
+      return res.json({ success: false, message: err.message });
     }
   }
 

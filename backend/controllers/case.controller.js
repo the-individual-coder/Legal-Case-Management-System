@@ -1,14 +1,14 @@
 const {
   Case,
   User,
+  Client,
   Appointment,
   Invoice,
   ActivityLog,
-  Client,
   Engagement,
   CaseClosures,
 } = require("../models");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 const BaseController = require("../utils/BaseController");
 
 module.exports = class CaseController extends BaseController {
@@ -39,9 +39,22 @@ module.exports = class CaseController extends BaseController {
 
   // GET /api/dashboard
   async getDashboard(req, res) {
+    const { role, userId, email } = req.params;
     try {
+      // --- Fetch client data if role is client ---
+      let clientData;
+      if (role === "client") {
+        clientData = await Client.findOne({ where: { email } });
+        if (!clientData) {
+          throw new Error("Client not found");
+        }
+      }
+
       // --- Summary counts ---
-      const totalCasesPromise = Case.count();
+      const totalCasesPromise = Case.count({
+        where: role === "client" ? { clientId: userId } : undefined,
+      });
+
       const activeClientsPromise = User.count({
         where: { role: "client", status: "active" },
       });
@@ -55,6 +68,8 @@ module.exports = class CaseController extends BaseController {
         where: {
           scheduledAt: { [Op.between]: [now, inSevenDays] },
           status: { [Op.not]: "cancelled" },
+          ...(role === "client" && { clientId: clientData.id }), // Ensure clientData is defined
+          ...(role === "lawyer" && { lawyerId: userId }),
         },
         order: [["scheduledAt", "ASC"]],
         limit: 10,
@@ -62,19 +77,28 @@ module.exports = class CaseController extends BaseController {
 
       // --- Pending invoices ---
       const pendingInvoicesPromise = Invoice.findAndCountAll({
-        where: { status: "pending" },
+        where: {
+          status: "pending",
+          ...(role === "client" && { clientId: clientData.id }),
+          ...(role === "lawyer" && { lawyerId: userId }),
+        },
         order: [["dueDate", "ASC"]],
         limit: 10,
       });
 
+      const data = await pendingInvoicesPromise;
       // --- Recent activity logs ---
       const recentActivityPromise = ActivityLog.findAll({
         order: [["createdAt", "DESC"]],
         limit: 15,
+        where:
+          role === "client" || role === "lawyer"
+            ? { userId: userId }
+            : undefined,
         include: [
           {
             model: User,
-            as: "user", // must match association in model
+            as: "user",
             attributes: ["id", "name", "email", "image"],
           },
         ],
