@@ -16,7 +16,6 @@ module.exports = class UserController extends BaseController {
 
       const users = await User.findAll({
         where,
-        attributes: ["id", "name", "email", "image", "role", "permissions"],
       });
 
       return this.createResponse({ success: true, data: users });
@@ -83,6 +82,117 @@ module.exports = class UserController extends BaseController {
         success: false,
         message: "Internal server error",
       });
+    }
+  }
+
+  // GET /user/getUser/:id
+  async getUserById(req, res) {
+    try {
+      const { id } = req.params;
+      const user = await User.findByPk(id);
+
+      if (!user) {
+        return this.createResponse({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      return this.createResponse({ success: true, data: user });
+    } catch (err) {
+      return this.createResponse({ success: false, message: err.message });
+    }
+  }
+
+  // POST /user/createUser/:userId
+  async createUser(req, res) {
+    try {
+      const { userId } = req.params;
+      const { name, email, image, role, permissions, status, providerId } =
+        req.body;
+
+      const newUser = await User.create({
+        name,
+        email,
+        image,
+        role,
+        permissions,
+        status,
+        providerId,
+      });
+
+      await this.logActivity({
+        userId,
+        action: "create",
+        targetType: "User",
+        targetId: newUser.id,
+        details: `Created user ${name} (${email})`,
+      });
+
+      return this.createResponse({ success: true, data: newUser });
+    } catch (err) {
+      return this.createResponse({ success: false, message: err.message });
+    }
+  }
+
+  // PUT /user/updateUser/:id/:userId
+  async updateUser(req, res) {
+    try {
+      const { id, userId } = req.params;
+      const user = await User.findByPk(id);
+
+      if (!user) {
+        return this.createResponse({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      await user.update(req.body);
+
+      await this.logActivity({
+        userId,
+        action: "update",
+        targetType: "User",
+        targetId: id,
+        details: `Updated user ${user.name} (${user.email})`,
+      });
+
+      return this.createResponse({ success: true, data: user });
+    } catch (err) {
+      return this.createResponse({ success: false, message: err.message });
+    }
+  }
+
+  // DELETE /user/deleteUser/:id/:userId
+  async deleteUser(req, res) {
+    try {
+      const { id, userId } = req.params;
+      const user = await User.findByPk(id);
+
+      if (!user) {
+        return this.createResponse({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      await user.destroy();
+
+      await this.logActivity({
+        userId,
+        action: "delete",
+        targetType: "User",
+        targetId: id,
+        details: `Deleted user ${user.name} (${user.email})`,
+      });
+
+      return this.createResponse({
+        success: true,
+        message: "User deleted",
+      });
+    } catch (err) {
+      return this.createResponse({ success: false, message: err.message });
     }
   }
 };

@@ -83,3 +83,26 @@ body {
 }
 
 }
+
+/* Increase the height of calendar cells */
+.ant-calendar-date {
+  height: 120px !important; /* Adjust this value as needed */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 8px;
+}
+
+/* Increase the height of the list items within the cell */
+.ant-list-item {
+  padding: 8px 4px; /* Adjust padding */
+  font-size: 12px;  /* Adjust font size */
+}
+
+/* Ensure the event title fits better */
+.ant-list-item .ant-typography {
+  font-size: 12px;  /* Adjust font size */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

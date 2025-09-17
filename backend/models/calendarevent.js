@@ -7,6 +7,10 @@ module.exports = (sequelize, DataTypes) => {
         as: "creator",
         foreignKey: "createdById",
       });
+      CalendarEvent.belongsTo(models.Case, {
+        as: "Case",
+        foreignKey: "caseId",
+      });
     }
   }
   CalendarEvent.init(

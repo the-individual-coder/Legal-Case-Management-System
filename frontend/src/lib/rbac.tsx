@@ -33,6 +33,14 @@ export const PERMISSIONS = {
     UPDATE: "cases:update",
     DELETE: "cases:delete",
   },
+  TASKS: {
+    VIEW: "tasks:view",
+    CREATE: "tasks:create",
+    UPDATE: "tasks:update",
+    DELETE: "tasks:delete",
+    ASSIGN: "tasks:assign", // Optional, if tasks can be assigned
+  },
+
   DOCUMENTS: {
     VIEW: "documents:view",
     CREATE: "documents:create",
@@ -102,6 +110,10 @@ export const ROLE_PERMISSIONS: Record<Role, string[]> = {
     PERMISSIONS.NOTES.VIEW,
     PERMISSIONS.NOTES.CREATE,
     PERMISSIONS.NOTES.UPDATE,
+    PERMISSIONS.TASKS.VIEW,
+    PERMISSIONS.TASKS.CREATE,
+    PERMISSIONS.TASKS.UPDATE,
+    PERMISSIONS.TASKS.DELETE,
     PERMISSIONS.CLOSURE.VIEW,
   ],
 
@@ -111,6 +123,7 @@ export const ROLE_PERMISSIONS: Record<Role, string[]> = {
     PERMISSIONS.NOTES.VIEW,
     PERMISSIONS.NOTES.UPDATE,
     PERMISSIONS.DASHBOARD.VIEW,
+    PERMISSIONS.TASKS.VIEW,
   ],
 
   staff: [
@@ -125,6 +138,8 @@ export const ROLE_PERMISSIONS: Record<Role, string[]> = {
     PERMISSIONS.CLIENT_INTAKE.CREATE,
     PERMISSIONS.ENGAGEMENTS.VIEW,
     PERMISSIONS.ENGAGEMENTS.CREATE,
+    PERMISSIONS.TASKS.VIEW,
+    PERMISSIONS.TASKS.CREATE,
   ],
 
   client: [
@@ -241,6 +256,20 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/closure",
     icon: <FileDoneOutlined />,
     permission: PERMISSIONS.CLOSURE.VIEW,
+  },
+  {
+    key: "notes",
+    label: "Notes",
+    href: "/notes",
+    icon: <FileTextOutlined />,
+    permission: PERMISSIONS.NOTES.VIEW,
+  },
+  {
+    key: "tasks",
+    label: "Tasks",
+    href: "/tasks",
+    icon: <FileTextOutlined />,
+    permission: PERMISSIONS.TASKS.VIEW,
   },
   {
     key: "users",

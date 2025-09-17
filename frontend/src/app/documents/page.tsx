@@ -22,7 +22,7 @@ export default function DocumentsPage() {
     setLoading(true);
     try {
       let res;
-      if (role !== "staff" && role !== "admin") {
+      if (role !== "staff" && role !== "admin" && role !== "reviewer") {
         res = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/document?search=createdBy:${session?.user?.id}&include=creator`
         );

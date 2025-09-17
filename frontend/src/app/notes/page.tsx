@@ -3,104 +3,118 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Space, Spin, App } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import ClosureFormModal from "@/components/Closure/ClosureFormModal";
+import NoteFormModal from "@/components/Notes/NoteFormModal";
 import { useSession } from "next-auth/react";
 import { PERMISSIONS, can } from "@/lib/rbac";
 
-type Closure = {
+type NoteItem = {
   id: number;
-  summary: string;
-  closedAt: string;
+  content: string;
+  createdAt: string;
   Case?: { id: number; title: string };
-  closedBy?: { id: number; name: string };
+  author?: { id: number; name: string; image?: string };
 };
 
-export default function ClosurePage() {
+export default function NotesPage() {
   const [loading, setLoading] = useState(true);
-  const [closures, setClosures] = useState<Closure[]>([]);
+  const [notes, setNotes] = useState<NoteItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Closure | null>(null);
+  const [editing, setEditing] = useState<NoteItem | null>(null);
 
   const { data, status } = useSession();
-  const userId = status === "authenticated" ? data?.user?.id : null;
+  const userId = status === "authenticated" ? (data?.user as any)?.id : null;
   const role = (data?.user as any)?.role ?? "client";
   const { modal, message } = App.useApp();
 
-  const canView = can(role, PERMISSIONS.CLOSURE.VIEW);
-  const canCreate = can(role, PERMISSIONS.CLOSURE.CREATE);
-  const canUpdate = can(role, PERMISSIONS.CLOSURE.UPDATE);
-  const canDelete = can(role, PERMISSIONS.CLOSURE.DELETE);
+  const canView = can(role, PERMISSIONS.NOTES.VIEW);
+  const canCreate = can(role, PERMISSIONS.NOTES.CREATE);
+  const canUpdate = can(role, PERMISSIONS.NOTES.UPDATE);
+  const canDelete = can(role, PERMISSIONS.NOTES.DELETE);
 
-  const fetchClosures = async () => {
+  const fetchNotes = async () => {
     if (!canView) return;
     setLoading(true);
     try {
       if (["admin", "staff", "reviewer"].includes(role)) {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/caseclosure/getClosures`,
-          { credentials: "include" }
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/note/getNotes`,
+          {
+            credentials: "include",
+          }
         );
         const json = await res.json();
-        setClosures(json.data.data || []);
+        // If your API wraps with { data: ... } like appointments, adapt accordingly
+        const dataPayload = json.data.data || json;
+        setNotes(Array.isArray(dataPayload) ? dataPayload : []);
       } else {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/caseclosure?search=closedById:${userId}&include=closedBy,Case`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/note?search=authorId:${userId}&include=Case,author`
         );
         const json = await res.json();
-        setClosures(json.data || []);
+        // If your API wraps with { data: ... } like appointments, adapt accordingly
+        const dataPayload = json.data || json;
+        setNotes(Array.isArray(dataPayload) ? dataPayload : []);
       }
     } catch (err) {
       console.error(err);
+      message.error("Failed to load notes");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchClosures();
+    fetchNotes();
   }, []);
 
   const handleDelete = async (id: number) => {
     if (!canDelete) {
-      message.error("You do not have permission to delete closures.");
+      message.error("You do not have permission to delete notes.");
       return;
     }
 
     modal.confirm({
-      title: "Delete closure?",
+      title: "Delete note?",
       onOk: async () => {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/caseclosure/deleteClosure/${id}/${userId}`,
-          { method: "DELETE", credentials: "include" }
-        );
-        await res.json();
-        message.success("Closure deleted");
-        fetchClosures();
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/note/deleteNote/${id}/${userId}`,
+            { method: "DELETE", credentials: "include" }
+          );
+          await res.json();
+          message.success("Deleted");
+          fetchNotes();
+        } catch (err: any) {
+          console.error(err);
+          message.error(err.message || "Delete failed");
+        }
       },
     });
   };
 
   const columns = [
+    { title: "Case", dataIndex: ["Case", "title"], key: "Case" },
     {
-      title: "Case",
-      dataIndex: ["Case", "title"],
-      render: (_: any, record: Closure) =>
-        record.Case?.title || `Case #${record.Case?.id}`,
+      title: "Author",
+      dataIndex: ["author", "name"],
+      key: "author",
     },
     {
-      title: "Closed By",
-      dataIndex: ["closedBy", "name"],
-      render: (name: string) => name || "-",
+      title: "Content",
+      dataIndex: "content",
+      render: (c: string) => (
+        <div style={{ maxWidth: 500, whiteSpace: "pre-wrap" }}>{c}</div>
+      ),
     },
     {
-      title: "Closed At",
-      dataIndex: "closedAt",
+      title: "Created At",
+      dataIndex: "createdAt",
       render: (d: string) => new Date(d).toLocaleString(),
     },
-    { title: "Summary", dataIndex: "summary" },
     {
       title: "Action",
-      render: (r: Closure) =>
+      key: "action",
+      render: (r: NoteItem) =>
         (canUpdate || canDelete) && (
           <Space>
             {canUpdate && (
@@ -132,7 +146,7 @@ export default function ClosurePage() {
     return (
       <div className="p-6">
         <h1 className="text-xl font-bold">Unauthorized</h1>
-        <p>You do not have permission to view closures.</p>
+        <p>You do not have permission to view notes.</p>
       </div>
     );
   }
@@ -142,7 +156,7 @@ export default function ClosurePage() {
   return (
     <div className="p-6">
       <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">Closures</h1>
+        <h1 className="text-2xl font-bold">Notes</h1>
         {canCreate && (
           <Button
             type="primary"
@@ -152,22 +166,22 @@ export default function ClosurePage() {
               setModalOpen(true);
             }}
           >
-            New Closure
+            New Note
           </Button>
         )}
       </div>
 
-      <Table rowKey="id" columns={columns} dataSource={closures} bordered />
+      <Table rowKey="id" columns={columns} dataSource={notes} />
 
       {modalOpen && (
-        <ClosureFormModal
+        <NoteFormModal
           open={modalOpen}
-          onCancel={() => {
+          onClose={() => {
             setModalOpen(false);
-            fetchClosures();
+            fetchNotes();
           }}
-          initialValues={editing || undefined}
-          userId={Number(userId)}
+          editing={editing}
+          userId={userId}
         />
       )}
     </div>

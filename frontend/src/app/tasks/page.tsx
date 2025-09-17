@@ -1,53 +1,55 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, Spin, App } from "antd";
+import { Table, Button, Space, Tag, Spin, Modal, App } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import ClosureFormModal from "@/components/Closure/ClosureFormModal";
+import TaskFormModal from "@/components/Tasks/TaskFormModal";
 import { useSession } from "next-auth/react";
 import { PERMISSIONS, can } from "@/lib/rbac";
 
-type Closure = {
+type Task = {
   id: number;
-  summary: string;
-  closedAt: string;
+  title: string;
+  description?: string;
+  status: string;
+  dueDate: string;
   Case?: { id: number; title: string };
-  closedBy?: { id: number; name: string };
+  AssignedTo?: { id: number; name: string };
 };
 
-export default function ClosurePage() {
+export default function TasksPage() {
   const [loading, setLoading] = useState(true);
-  const [closures, setClosures] = useState<Closure[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Closure | null>(null);
+  const [editing, setEditing] = useState<Task | null>(null);
 
   const { data, status } = useSession();
   const userId = status === "authenticated" ? data?.user?.id : null;
   const role = (data?.user as any)?.role ?? "client";
   const { modal, message } = App.useApp();
 
-  const canView = can(role, PERMISSIONS.CLOSURE.VIEW);
-  const canCreate = can(role, PERMISSIONS.CLOSURE.CREATE);
-  const canUpdate = can(role, PERMISSIONS.CLOSURE.UPDATE);
-  const canDelete = can(role, PERMISSIONS.CLOSURE.DELETE);
+  const canView = can(role, PERMISSIONS.TASKS.VIEW);
+  const canCreate = can(role, PERMISSIONS.TASKS.CREATE);
+  const canUpdate = can(role, PERMISSIONS.TASKS.UPDATE);
+  const canDelete = can(role, PERMISSIONS.TASKS.DELETE);
 
-  const fetchClosures = async () => {
+  const fetchTasks = async () => {
     if (!canView) return;
     setLoading(true);
     try {
       if (["admin", "staff", "reviewer"].includes(role)) {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/caseclosure/getClosures`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/task/getTasks`,
           { credentials: "include" }
         );
         const json = await res.json();
-        setClosures(json.data.data || []);
+        setTasks(json.data.data || []);
       } else {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/caseclosure?search=closedById:${userId}&include=closedBy,Case`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/task?search=assignedToId:${userId}&include=Case,assignee`
         );
         const json = await res.json();
-        setClosures(json.data || []);
+        setTasks(json.data || []);
       }
     } catch (err) {
       console.error(err);
@@ -57,50 +59,51 @@ export default function ClosurePage() {
   };
 
   useEffect(() => {
-    fetchClosures();
+    fetchTasks();
   }, []);
 
   const handleDelete = async (id: number) => {
     if (!canDelete) {
-      message.error("You do not have permission to delete closures.");
+      message.error("You do not have permission to delete tasks.");
       return;
     }
 
     modal.confirm({
-      title: "Delete closure?",
+      title: "Delete task?",
       onOk: async () => {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/caseclosure/deleteClosure/${id}/${userId}`,
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/task/deleteTask/${id}/${userId}`,
           { method: "DELETE", credentials: "include" }
         );
-        await res.json();
-        message.success("Closure deleted");
-        fetchClosures();
+        message.success("Task deleted");
+        fetchTasks();
       },
     });
   };
 
   const columns = [
+    { title: "Case", dataIndex: ["Case", "title"], key: "case" },
+    { title: "Title", dataIndex: "title", key: "title" },
     {
-      title: "Case",
-      dataIndex: ["Case", "title"],
-      render: (_: any, record: Closure) =>
-        record.Case?.title || `Case #${record.Case?.id}`,
+      title: "Assigned To",
+      dataIndex: ["assignee", "name"],
+      key: "assignee",
     },
     {
-      title: "Closed By",
-      dataIndex: ["closedBy", "name"],
-      render: (name: string) => name || "-",
+      title: "Due Date",
+      dataIndex: "dueDate",
+      render: (d: string) => new Date(d).toLocaleDateString(),
     },
     {
-      title: "Closed At",
-      dataIndex: "closedAt",
-      render: (d: string) => new Date(d).toLocaleString(),
+      title: "Status",
+      dataIndex: "status",
+      render: (s: string) => (
+        <Tag color={s === "completed" ? "green" : "orange"}>{s}</Tag>
+      ),
     },
-    { title: "Summary", dataIndex: "summary" },
     {
       title: "Action",
-      render: (r: Closure) =>
+      render: (r: Task) =>
         (canUpdate || canDelete) && (
           <Space>
             {canUpdate && (
@@ -132,7 +135,7 @@ export default function ClosurePage() {
     return (
       <div className="p-6">
         <h1 className="text-xl font-bold">Unauthorized</h1>
-        <p>You do not have permission to view closures.</p>
+        <p>You do not have permission to view tasks.</p>
       </div>
     );
   }
@@ -142,7 +145,7 @@ export default function ClosurePage() {
   return (
     <div className="p-6">
       <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">Closures</h1>
+        <h1 className="text-2xl font-bold">Tasks</h1>
         {canCreate && (
           <Button
             type="primary"
@@ -152,22 +155,21 @@ export default function ClosurePage() {
               setModalOpen(true);
             }}
           >
-            New Closure
+            New Task
           </Button>
         )}
       </div>
 
-      <Table rowKey="id" columns={columns} dataSource={closures} bordered />
+      <Table rowKey="id" columns={columns} dataSource={tasks} />
 
       {modalOpen && (
-        <ClosureFormModal
+        <TaskFormModal
           open={modalOpen}
-          onCancel={() => {
+          onClose={() => {
             setModalOpen(false);
-            fetchClosures();
+            fetchTasks();
           }}
-          initialValues={editing || undefined}
-          userId={Number(userId)}
+          editing={editing}
         />
       )}
     </div>

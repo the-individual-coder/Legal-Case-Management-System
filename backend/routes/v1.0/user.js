@@ -21,6 +21,26 @@ module.exports = class UserRouter extends BaseRouter {
         path: "/syncUser",
         function: "syncUser",
       },
+      {
+        method: "get",
+        path: "/getUser/:id",
+        function: "getUserById",
+      },
+      {
+        method: "post",
+        path: "/createUser/:userId",
+        function: "createUser",
+      },
+      {
+        method: "put",
+        path: "/updateUser/:id/:userId",
+        function: "updateUser",
+      },
+      {
+        method: "delete",
+        path: "/deleteUser/:id/:userId",
+        function: "deleteUser",
+      },
     ];
     return mappings;
   };

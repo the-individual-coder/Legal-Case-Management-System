@@ -43,7 +43,6 @@ export default function DashboardPage() {
   const role = (session?.user as any)?.role ?? "client";
   const id = session?.user.id;
   const email = session?.user.email;
-  console.log("the ses, se", session?.user);
   const perms = (session?.user as any)?.permissions ?? [];
 
   const [loading, setLoading] = useState(true);
