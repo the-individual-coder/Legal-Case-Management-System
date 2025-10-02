@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Table, Button, Space, Tag, Spin, App, Select } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import UserFormModal from "@/components/User/UserFormModal";
 import { useSession } from "next-auth/react";
 import { PERMISSIONS, can } from "@/lib/rbac";
@@ -30,7 +30,6 @@ export default function UsersPage() {
   const { modal, message } = App.useApp();
 
   const canView = can(role, PERMISSIONS.USERS.VIEW);
-  const canCreate = can(role, PERMISSIONS.USERS.CREATE);
   const canUpdate = can(role, PERMISSIONS.USERS.UPDATE);
   const canDelete = can(role, PERMISSIONS.USERS.DELETE);
 
@@ -45,7 +44,7 @@ export default function UsersPage() {
         ? `search=${conditions.join(",")}`
         : "";
 
-      let url = searchQuery
+      const url = searchQuery
         ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/user?${searchQuery}`
         : `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/getUsers`;
 
