@@ -80,7 +80,6 @@ export default function EngagementFormModal({ open, editing, onClose }: Props) {
         credentials: "include",
         body: JSON.stringify({ ...payload, userId }),
       });
-      if (!res.ok) throw new Error(await res.text());
       message.success(editing ? "Updated" : "Created");
       onClose();
     } catch (err: any) {

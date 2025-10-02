@@ -143,10 +143,10 @@ export default function TaskFormModal({
           label="Case"
           rules={[{ required: true, message: "Case is required" }]}
         >
-          <Select placeholder="Select case">
+          <Select placeholder="Select case no.">
             {cases.map((c) => (
               <Select.Option key={c.id} value={c.id}>
-                {c.title}
+                {c.id}
               </Select.Option>
             ))}
           </Select>
@@ -171,7 +171,7 @@ export default function TaskFormModal({
           label="Title"
           rules={[{ required: true, message: "Title is required" }]}
         >
-          <Input />
+          <Input placeholder="Enter title" />
         </Form.Item>
 
         <Form.Item name="description" label="Description">

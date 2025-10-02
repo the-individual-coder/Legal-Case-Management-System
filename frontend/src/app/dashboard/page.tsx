@@ -61,7 +61,6 @@ export default function DashboardPage() {
             credentials: "include",
           }
         );
-        if (!res.ok) throw new Error("Failed to fetch dashboard");
         const json: DashboardResponse = await res.json();
         setData(json.data);
 

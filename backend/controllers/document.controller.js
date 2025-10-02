@@ -39,31 +39,33 @@ class DocumentController extends BaseController {
   // multipart: file, caseId, createdBy
   async upload(req, res) {
     try {
-      // multer should have put file in req.file
       const file = req.file;
       const { caseId, createdBy } = req.body;
 
       if (!file) {
-        return res.json({ success: false, message: "No file uploaded" }, 400);
+        return res
+          .status(400)
+          .json({ success: false, message: "No file uploaded" });
       }
 
-      // optional: validate caseId exists
+      // optional: validate caseId
       let caseRow = null;
       if (caseId) caseRow = await CaseModel.findByPk(caseId);
 
       // upload to cloudinary
       const tempPath = file.path;
-      const publicId = `documents/${path.basename(
-        file.filename,
-        path.extname(file.filename)
-      )}_${uuidv4()}`;
+      const ext = path.extname(file.originalname); // keep extension (.pdf, .docx, .png, etc.)
+      const baseName = path.basename(file.originalname, ext);
+
+      // now publicId keeps the extension
+      const publicId = `documents/${baseName}_${uuidv4()}${ext}`;
 
       const uploadResult = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: "documents",
             public_id: publicId,
-            resource_type: "auto",
+            resource_type: "auto", // allows pdf, docx, images, etc.
           },
           (error, result) => {
             if (error) return reject(error);
@@ -73,21 +75,30 @@ class DocumentController extends BaseController {
         fs.createReadStream(tempPath).pipe(stream);
       });
 
-      console.log("beforee");
-      // run OCR (best-effort) if it's an image/pdf (Tesseract supports many image types; PDF may need conversion)
+      // extract text depending on file type
       let ocrText = null;
       try {
-        // Tesseract works with local file - we already have tempPath
-        // Note: processing PDFs with Tesseract can be slow and needs imagemagick in some setups — handle failures gracefully
-        const workerPromise = Tesseract.recognize(tempPath, "eng");
-        const { data } = await workerPromise;
-        console.log("beforee  p");
-        ocrText = data && data.text ? data.text.trim() : null;
+        const lowerExt = ext.toLowerCase();
+
+        if (lowerExt === ".pdf") {
+          const dataBuffer = fs.readFileSync(tempPath);
+          const parsed = await pdfParse(dataBuffer);
+          ocrText = parsed.text?.trim() || null;
+        } else if (lowerExt === ".docx" || lowerExt === ".doc") {
+          const result = await mammoth.extractRawText({ path: tempPath });
+          ocrText = result.value?.trim() || null;
+        } else {
+          const { data } = await Tesseract.recognize(tempPath, "eng");
+          ocrText = data?.text?.trim() || null;
+        }
       } catch (ocrErr) {
-        console.warn("OCR failed (non-fatal):", ocrErr?.message || ocrErr);
+        console.warn(
+          "Text extraction failed (non-fatal):",
+          ocrErr?.message || ocrErr
+        );
         ocrText = null;
       }
-      console.log("afterr  p");
+
       // create Document record
       const doc = await Document.create({
         caseId: caseId || null,
@@ -95,10 +106,10 @@ class DocumentController extends BaseController {
         type: req.body.type || "upload",
         content: req.body.content || null,
         filePath: uploadResult.secure_url || uploadResult.url || "",
-        ocrText: ocrText || null,
+        ocrText: ocrText,
         createdBy: createdBy || null,
       });
-      console.log("afterr  pzz");
+
       // log activity
       await this.logActivity({
         userId: createdBy || null,
@@ -107,11 +118,11 @@ class DocumentController extends BaseController {
         targetId: doc.id,
         details: `Uploaded document ${doc.title} for case ${caseId || "N/A"}`,
       });
-      console.log("afterr  pzzss");
+
       return res.json({ success: true, data: doc });
     } catch (err) {
       console.error("Document.upload error:", err);
-      return res.json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -167,19 +178,26 @@ class DocumentController extends BaseController {
       const { status, notes } = req.body;
 
       const doc = await Document.findByPk(id);
-      if (!doc)
+      if (!doc) {
         return this.createResponse(
           { success: false, message: "Document not found" },
           404
         );
+      }
 
-      // create a Note linked to the document's case describing the review
+      // ✅ update document with new status + review notes
+      doc.status = status;
+      doc.reviewNotes = notes || null;
+      await doc.save();
+      console.log("the doc", doc);
+      // also create a Note linked to the case
       await Note.create({
         caseId: doc.caseId || null,
         authorId: userId || null,
         content: `Document Review (${status}): ${notes || ""}`,
       });
 
+      // log the activity
       await this.logActivity({
         userId: userId || null,
         action: "review",
@@ -188,7 +206,11 @@ class DocumentController extends BaseController {
         details: `Document ${id} reviewed with status=${status}`,
       });
 
-      return this.createResponse({ success: true, message: "Review recorded" });
+      return this.createResponse({
+        success: true,
+        message: "Review recorded",
+        data: doc, // return updated document
+      });
     } catch (err) {
       console.error("Document.review error:", err);
       return this.createResponse({ success: false, message: err.message });

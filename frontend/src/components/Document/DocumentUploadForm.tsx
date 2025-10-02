@@ -44,7 +44,7 @@ export default function DocumentUploadForm({
         formData.append("caseId", form.getFieldValue("caseId") || caseId || "");
         formData.append("createdBy", userId || "");
         formData.append("type", form.getFieldValue("type") || "upload");
-
+        formData.append("content", form.getFieldValue("content") || "content");
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL_NO_VERSION}/document/upload`,
           {
@@ -96,7 +96,7 @@ export default function DocumentUploadForm({
             options={
               cases && cases.length > 0
                 ? cases.map((c) => ({
-                    label: `${c.title}`,
+                    label: `${c.id}`,
                     value: c.id,
                   }))
                 : []
@@ -104,7 +104,12 @@ export default function DocumentUploadForm({
           />
         </Form.Item>
 
-        <Form.Item name="type" label="Type" initialValue="evidence">
+        <Form.Item
+          name="type"
+          label="Type"
+          initialValue="evidence"
+          rules={[{ required: true, message: "Please select or enter a type" }]}
+        >
           <Select
             options={[
               { label: "Evidence", value: "evidence" },
@@ -115,6 +120,28 @@ export default function DocumentUploadForm({
           />
         </Form.Item>
 
+        {/* This block re-renders when "type" changes */}
+        <Form.Item shouldUpdate={(prev, curr) => prev.type !== curr.type}>
+          {({ getFieldValue }) =>
+            !["evidence", "contract", "payment_proof"].includes(
+              getFieldValue("type")
+            ) ? (
+              <Form.Item
+                name="type"
+                noStyle
+                rules={[
+                  { required: true, message: "Please enter custom type" },
+                ]}
+              >
+                <Input placeholder="Enter custom type" />
+              </Form.Item>
+            ) : null
+          }
+        </Form.Item>
+
+        <Form.Item name="content" label="Description">
+          <Input.TextArea rows={3} placeholder="Enter Description" />
+        </Form.Item>
         <Form.Item label="File">
           <Upload {...uploadProps}>
             <Button icon={<UploadOutlined />} loading={uploading}>

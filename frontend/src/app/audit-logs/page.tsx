@@ -101,39 +101,14 @@ export default function ActivityLogsPage() {
       render: (d: string) => new Date(d).toLocaleString(),
     },
     {
+      title: "Updated At",
+      dataIndex: "updatedAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
       title: "Action",
       render: (r: ActivityLog) => (
         <Space>
-          <Button
-            icon={<EyeOutlined />}
-            onClick={() =>
-              modal.info({
-                title: "Activity Log Details",
-                content: (
-                  <div className="space-y-2">
-                    <p>
-                      <b>User:</b> {r.user?.name || `User #${r.userId}`}
-                    </p>
-                    <p>
-                      <b>Action:</b> {r.action}
-                    </p>
-                    <p>
-                      <b>Target:</b> {r.targetType} #{r.targetId}
-                    </p>
-                    <p>
-                      <b>Details:</b> {r.details}
-                    </p>
-                    <p>
-                      <b>Created At:</b>{" "}
-                      {new Date(r.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                ),
-              })
-            }
-          >
-            View
-          </Button>
           {canUpdate && (
             <Button
               icon={<EditOutlined />}
@@ -174,7 +149,7 @@ export default function ActivityLogsPage() {
     <div className="p-6">
       <div className="flex justify-between mb-4 items-center">
         <h1 className="text-2xl font-bold">Activity Logs</h1>
-        {canCreate && (
+        {/* {canCreate && (
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -185,7 +160,7 @@ export default function ActivityLogsPage() {
           >
             New Log
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* Filters */}

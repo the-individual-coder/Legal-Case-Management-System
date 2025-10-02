@@ -19,6 +19,8 @@ module.exports = (sequelize, DataTypes) => {
       filePath: DataTypes.STRING,
       ocrText: DataTypes.TEXT,
       createdBy: DataTypes.INTEGER,
+      status: DataTypes.STRING,
+      reviewNotes: DataTypes.TEXT,
     },
     { sequelize, modelName: "Document" }
   );

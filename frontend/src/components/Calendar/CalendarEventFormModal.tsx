@@ -124,11 +124,11 @@ export default function CalendarEventFormModal({
           <Input.TextArea rows={3} />
         </Form.Item>
 
-        <Form.Item name="caseId" label="Case (optional)">
+        <Form.Item name="caseId" label="Case No. (optional)">
           <Select allowClear placeholder="Select case">
             {cases.map((c) => (
               <Select.Option key={c.id} value={c.id}>
-                {c.title}
+                {c.id}
               </Select.Option>
             ))}
           </Select>

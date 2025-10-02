@@ -129,7 +129,6 @@ export default function InvoiceFormModal({ visible, editing, onClose }: Props) {
           }
         );
 
-        if (!res.ok) throw new Error("Upload failed");
         const json = await res.json();
 
         message.success("Payment proof uploaded");
@@ -164,11 +163,11 @@ export default function InvoiceFormModal({ visible, editing, onClose }: Props) {
           />
         </Form.Item>
 
-        <Form.Item name="caseId" label="Case (optional)">
+        <Form.Item name="caseId" label="Case No. (optional)">
           <Select
             showSearch
             optionFilterProp="label"
-            options={cases.map((c) => ({ label: c.title, value: c.id }))}
+            options={cases.map((c) => ({ label: c.id, value: c.id }))}
           />
         </Form.Item>
 

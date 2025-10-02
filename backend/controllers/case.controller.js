@@ -10,7 +10,8 @@ const {
 } = require("../models");
 const { Op, where } = require("sequelize");
 const BaseController = require("../utils/BaseController");
-
+const { getPermissionsByRole } = require("../utils/rbac.js");
+const { PERMISSIONS } = require("../utils/rbac.js"); // or adjust import path
 module.exports = class CaseController extends BaseController {
   constructor() {
     super(Case);
@@ -301,7 +302,7 @@ module.exports = class CaseController extends BaseController {
         status: status ?? "new",
       });
 
-      await logActivity({
+      await this.logActivity({
         userId: actorId || null,
         action: "create",
         targetType: "Case",
@@ -343,6 +344,7 @@ module.exports = class CaseController extends BaseController {
         description,
         priority,
         assignedLawyerId,
+        clientId,
         startDate,
         endDate,
         status,
@@ -351,12 +353,13 @@ module.exports = class CaseController extends BaseController {
       cas.description = description ?? cas.description;
       cas.priority = priority ?? cas.priority;
       cas.assignedLawyerId = assignedLawyerId ?? cas.assignedLawyerId;
+      cas.clientId = clientId ?? cas.clientId;
       cas.startDate = startDate ?? cas.startDate;
       cas.endDate = endDate ?? cas.endDate;
       cas.status = status ?? cas.status;
       await cas.save();
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "update",
         targetType: "Case",
@@ -403,7 +406,7 @@ module.exports = class CaseController extends BaseController {
       cas.assignedLawyerId = lawyerId;
       await cas.save();
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "assign",
         targetType: "Case",
@@ -443,7 +446,7 @@ module.exports = class CaseController extends BaseController {
       cas.status = status;
       await cas.save();
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "status_change",
         targetType: "Case",
@@ -497,7 +500,7 @@ module.exports = class CaseController extends BaseController {
         summary: summary ?? null,
       });
 
-      await logActivity({
+      await this.logActivity({
         userId: userId || null,
         action: "close",
         targetType: "Case",

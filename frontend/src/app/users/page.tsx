@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, Spin, Tag, App } from "antd";
+import { Table, Button, Space, Tag, Spin, App, Select } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import UserFormModal from "@/components/User/UserFormModal";
 import { useSession } from "next-auth/react";
@@ -21,6 +21,8 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
+  const [filterRole, setFilterRole] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
 
   const { data, status } = useSession();
   const userId = status === "authenticated" ? data?.user?.id : null;
@@ -36,14 +38,23 @@ export default function UsersPage() {
     if (!canView) return;
     setLoading(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/getUsers`,
-        { credentials: "include" }
-      );
+      const conditions: string[] = [];
+      if (filterRole) conditions.push(`role:${filterRole}`);
+      if (filterStatus) conditions.push(`status:${filterStatus}`);
+      const searchQuery = conditions.length
+        ? `search=${conditions.join(",")}`
+        : "";
+
+      let url = searchQuery
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/user?${searchQuery}`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/getUsers`;
+
+      const res = await fetch(url, { credentials: "include" });
       const json = await res.json();
-      setUsers(json.data.data || []);
+      setUsers(json.data.data || json.data || []);
     } catch (err) {
       console.error(err);
+      message.error("Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -51,7 +62,8 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterRole, filterStatus]);
 
   const handleDelete = async (id: number) => {
     if (!canDelete) {
@@ -104,7 +116,7 @@ export default function UsersPage() {
                 Edit
               </Button>
             )}
-            {/* {canDelete && (
+            {canDelete && (
               <Button
                 icon={<DeleteOutlined />}
                 danger
@@ -112,7 +124,7 @@ export default function UsersPage() {
               >
                 Delete
               </Button>
-            )} */}
+            )}
           </Space>
         ),
     },
@@ -133,18 +145,35 @@ export default function UsersPage() {
     <div className="p-6">
       <div className="flex justify-between mb-4">
         <h1 className="text-2xl font-bold">Users</h1>
-        {/* {canCreate && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setEditing(null);
-              setModalOpen(true);
-            }}
-          >
-            New User
-          </Button>
-        )} */}
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-4 mb-4">
+        <Select
+          placeholder="Filter by Role"
+          style={{ width: 200 }}
+          value={filterRole || undefined}
+          onChange={(value) => setFilterRole(value)}
+          allowClear
+          options={[
+            { value: "admin", label: "Admin" },
+            { value: "lawyer", label: "Lawyer" },
+            { value: "reviewer", label: "Reviewer" },
+            { value: "staff", label: "Staff" },
+            { value: "client", label: "Client" },
+          ]}
+        />
+        <Select
+          placeholder="Filter by Status"
+          style={{ width: 200 }}
+          value={filterStatus || undefined}
+          onChange={(value) => setFilterStatus(value)}
+          allowClear
+          options={[
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
       </div>
 
       <Table rowKey="id" columns={columns} dataSource={users} bordered />

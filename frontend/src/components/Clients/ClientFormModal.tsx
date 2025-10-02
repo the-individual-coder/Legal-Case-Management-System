@@ -66,10 +66,6 @@ export default function ClientFormModal({ open, onClose, editing }: Props) {
         body: JSON.stringify(values),
       });
 
-      if (!res.ok) {
-        throw new Error(await res.text());
-      }
-
       message.success(`Client ${editing ? "updated" : "created"} successfully`);
       onClose();
     } catch (err: any) {

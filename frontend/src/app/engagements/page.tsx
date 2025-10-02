@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, Tag, Spin, App } from "antd";
+import { Table, Button, Space, Tag, Spin, App, Input, Select } from "antd";
 import {
   PlusOutlined,
   EditOutlined,
@@ -36,6 +36,7 @@ export default function EngagementsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<EngagementRow | null>(null);
+  const [filter, setFilter] = useState({ caseNo: "", status: "" }); // 👈 filters
   const { modal, message } = App.useApp();
 
   const canView = can(role, PERMISSIONS.ENGAGEMENTS.VIEW);
@@ -47,8 +48,14 @@ export default function EngagementsPage() {
     if (!canView) return;
     setLoading(true);
     try {
+      const caseFilter = filter.caseNo ? `caseId=${filter.caseNo}` : "";
+      const statusFilter = filter.status ? `status=${filter.status}` : "";
+      const query = [caseFilter, statusFilter].filter(Boolean).join("&");
+
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/engagement/getEngagements`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/engagement/getEngagements${
+          query ? `?${query}` : ""
+        }`,
         { credentials: "include" }
       );
       const json = await res.json();
@@ -63,7 +70,7 @@ export default function EngagementsPage() {
 
   useEffect(() => {
     fetchEngagements();
-  }, []);
+  }, [filter]); // 👈 refetch when filters change
 
   const handleDelete = (rec: EngagementRow) => {
     if (!canDelete) {
@@ -79,7 +86,6 @@ export default function EngagementsPage() {
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/engagement/delete/${rec.id}/${userId}`,
             { method: "DELETE", credentials: "include" }
           );
-          if (!res.ok) throw new Error("Delete failed");
           await res.json();
           message.success("Deleted");
           fetchEngagements();
@@ -104,7 +110,6 @@ export default function EngagementsPage() {
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/engagement/generateContract/${rec.id}/${userId}`,
             { method: "POST", credentials: "include" }
           );
-          if (!res.ok) throw new Error("Generation failed");
           const json = await res.json();
           message.success("Contract generated");
           if (json.data?.filePath) window.open(json.data.filePath, "_blank");
@@ -148,8 +153,33 @@ export default function EngagementsPage() {
         )}
       </div>
 
+      {/* Filters */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <Input.Search
+          placeholder="Filter by case no."
+          value={filter.caseNo}
+          onChange={(e) => setFilter((f) => ({ ...f, caseNo: e.target.value }))}
+          onSearch={(v) => setFilter((f) => ({ ...f, caseNo: v }))}
+          allowClear
+          style={{ width: 200 }}
+        />
+        <Select
+          placeholder="Filter by status"
+          style={{ width: 200 }}
+          value={filter.status || undefined}
+          onChange={(value) => setFilter((f) => ({ ...f, status: value }))}
+          allowClear
+          options={[
+            { label: "Active", value: "active" },
+            { label: "Completed", value: "completed" },
+            { label: "Terminated", value: "terminated" },
+            { label: "On-hold", value: "on-hold" },
+          ]}
+        />
+      </div>
+
       <Table dataSource={items} rowKey="id" pagination={{ pageSize: 8 }}>
-        <Table.Column title="Case" dataIndex={["case", "title"]} key="case" />
+        <Table.Column title="Case No." dataIndex={["case", "id"]} key="case" />
         <Table.Column
           title="Client"
           key="client"
@@ -187,13 +217,13 @@ export default function EngagementsPage() {
         />
         <Table.Column
           title="Agreement"
-          key="agreement"
-          render={(_, r: EngagementRow) =>
-            r.Agreement?.filePath ? (
+          key="agreementDoc"
+          render={(_, r: any) =>
+            r?.agreementDoc?.filePath ? (
               <Button
                 icon={<FileTextOutlined />}
                 onClick={() => {
-                  const filePath = r?.Agreement?.filePath;
+                  const filePath = r?.agreementDoc?.filePath;
                   if (filePath) window.open(filePath, "_blank");
                 }}
               >
@@ -201,13 +231,27 @@ export default function EngagementsPage() {
               </Button>
             ) : (
               <Button
-                onClick={() => handleGenerate(r)}
+                onClick={() => {
+                  handleGenerate(r);
+                }}
                 icon={<FileTextOutlined />}
               >
                 Generate
               </Button>
             )
           }
+        />
+        <Table.Column
+          title="Created At"
+          dataIndex="createdAt"
+          key="createdAt"
+          render={(s) => new Date(s).toLocaleString()}
+        />
+        <Table.Column
+          title="Updated At"
+          dataIndex="updatedAt"
+          key="updatedAt"
+          render={(s) => new Date(s).toLocaleString()}
         />
         <Table.Column
           title="Actions"

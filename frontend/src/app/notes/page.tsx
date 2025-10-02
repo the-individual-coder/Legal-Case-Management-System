@@ -93,7 +93,7 @@ export default function NotesPage() {
   };
 
   const columns = [
-    { title: "Case", dataIndex: ["Case", "title"], key: "Case" },
+    { title: "Case No.", dataIndex: ["Case", "id"], key: "Case" },
     {
       title: "Author",
       dataIndex: ["author", "name"],
@@ -109,6 +109,11 @@ export default function NotesPage() {
     {
       title: "Created At",
       dataIndex: "createdAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
+      title: "Updated At",
+      dataIndex: "updatedAt",
       render: (d: string) => new Date(d).toLocaleString(),
     },
     {

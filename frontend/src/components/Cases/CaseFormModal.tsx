@@ -122,7 +122,7 @@ export default function CaseFormModal({ visible, editing, onClose }: Props) {
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-          <Input />
+          <Input placeholder="Enter case" />
         </Form.Item>
 
         <Form.Item name="description" label="Description">
@@ -131,15 +131,25 @@ export default function CaseFormModal({ visible, editing, onClose }: Props) {
 
         <Form.Item name="clientId" label="Client" rules={[{ required: true }]}>
           <Select
-            options={clients.map((c) => ({
-              label: `${c.firstName} ${c.lastName}`,
-              value: c.id,
-            }))}
-          />
+            placeholder="Select client"
+            showSearch
+            optionFilterProp="label"
+          >
+            {clients.map((c) => (
+              <Select.Option
+                key={c.id}
+                value={c.id}
+                label={`${c.firstName} ${c.lastName}`}
+              >
+                {c.firstName} {c.lastName}
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item name="assignedLawyerId" label="Assigned Lawyer">
           <Select
+            placeholder="Select lawyer"
             options={lawyers.map((l) => ({ label: l.name, value: l.id }))}
           />
         </Form.Item>
@@ -159,9 +169,11 @@ export default function CaseFormModal({ visible, editing, onClose }: Props) {
           <DatePicker style={{ width: "100%" }} showTime />
         </Form.Item>
 
-        <Form.Item name="endDate" label="End Date">
-          <DatePicker style={{ width: "100%" }} showTime />
-        </Form.Item>
+        {editing && (
+          <Form.Item name="endDate" label="End Date">
+            <DatePicker style={{ width: "100%" }} showTime />
+          </Form.Item>
+        )}
 
         <Form.Item name="status" label="Status" initialValue="new">
           <Select

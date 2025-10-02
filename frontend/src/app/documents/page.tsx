@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, Spin, App, Modal, Input, Tag } from "antd";
+import {
+  Table,
+  Button,
+  Space,
+  Spin,
+  App,
+  Modal,
+  Input,
+  Tag,
+  Select,
+} from "antd";
 import { FileSearchOutlined, UploadOutlined } from "@ant-design/icons";
 import { useSession } from "next-auth/react";
 import DocumentUploadForm from "@/components/Document/DocumentUploadForm";
@@ -16,26 +26,36 @@ export default function DocumentsPage() {
   const [docs, setDocs] = useState<any[]>([]);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
-  const [reviewing, setReviewing] = useState<any | null>(null);
+  const [filter, setFilter] = useState({ type: "", status: "" });
 
   const fetchDocs = async () => {
     setLoading(true);
     try {
-      let res;
+      const conditions: string[] = [];
+      if (filter.type) conditions.push(`type:${filter.type}`);
+      if (filter.status) conditions.push(`status:${filter.status}`);
+      const searchQuery = conditions.length
+        ? `search=${conditions.join(",")}`
+        : "";
+
+      let url: string;
       if (role !== "staff" && role !== "admin" && role !== "reviewer") {
-        res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/document?search=createdBy:${session?.user?.id}&include=creator`
-        );
-        const json = await res.json();
-        setDocs(json.data);
+        url = `${
+          process.env.NEXT_PUBLIC_API_BASE_URL
+        }/document?search=createdBy:${session?.user?.id}${
+          searchQuery
+            ? "," + searchQuery.replace("search=", "").replace("&", "")
+            : ""
+        }&include=creator`;
+      } else if (searchQuery) {
+        url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/document?${searchQuery}&include=creator`;
       } else {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/document/list`,
-          { credentials: "include" }
-        );
-        const json = await res.json();
-        setDocs(json.data.data || []);
+        url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/document/list`;
       }
+
+      const res = await fetch(url, { credentials: "include" });
+      const json = await res.json();
+      setDocs(json.data.data || json.data);
     } catch (err) {
       console.error(err);
       message.error("Failed to load documents");
@@ -46,15 +66,15 @@ export default function DocumentsPage() {
 
   useEffect(() => {
     fetchDocs();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter.type, filter.status]);
 
   const handleOpen = (d: any) => {
+    if (!d.filePath) return;
     window.open(d.filePath, "_blank");
   };
 
   const handleReview = (d: any) => {
-    console.log("hanldedd");
-    // open modal to input status & notes
     modal.confirm({
       title: `Review document "${d.title}"`,
       content: (
@@ -101,7 +121,7 @@ export default function DocumentsPage() {
               body: JSON.stringify({ status: statusValue, notes: notesValue }),
             }
           );
-          const json = await res.json();
+          await res.json();
           message.success("Review recorded");
           fetchDocs();
         } catch (err: any) {
@@ -128,10 +148,40 @@ export default function DocumentsPage() {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <Select
+          placeholder="Filter by Type"
+          style={{ width: 200 }}
+          value={filter.type || undefined}
+          onChange={(value) => setFilter((f) => ({ ...f, type: value }))}
+          options={[
+            { label: "Evidence", value: "evidence" },
+            { label: "Contract", value: "contract" },
+            { label: "Payment proof", value: "payment_proof" },
+            { label: "Other", value: "other" },
+          ]}
+          allowClear
+        />
+        <Select
+          placeholder="Filter by Status"
+          style={{ width: 200 }}
+          value={filter.status || undefined}
+          onChange={(value) => setFilter((f) => ({ ...f, status: value }))}
+          options={[
+            { label: "Approved", value: "approved" },
+            { label: "Rejected", value: "rejected" },
+            { label: "Pending", value: "pending" },
+            { label: "Changes Requested", value: "changes_requested" },
+          ]}
+          allowClear
+        />
+      </div>
+
       <Table dataSource={docs} rowKey="id" pagination={{ pageSize: 10 }}>
         <Table.Column title="Title" dataIndex="title" key="title" />
         <Table.Column
-          title="Case"
+          title="Case No."
           dataIndex={["caseId"]}
           key="caseId"
           render={(c) => c ?? "-"}
@@ -141,6 +191,56 @@ export default function DocumentsPage() {
           dataIndex="type"
           key="type"
           render={(t) => <Tag>{t}</Tag>}
+        />
+        <Table.Column
+          title="Status"
+          dataIndex="status"
+          key="status"
+          render={(status: string) => {
+            let color = "default";
+            switch (status) {
+              case "approved":
+                color = "green";
+                break;
+              case "rejected":
+                color = "red";
+                break;
+              case "pending":
+              case "changes_requested":
+                color = "orange";
+                break;
+              default:
+                color = "blue";
+            }
+            return (
+              <Tag color={color}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </Tag>
+            );
+          }}
+        />
+        <Table.Column
+          title="Review Notes"
+          dataIndex="reviewNotes"
+          key="reviewNotes"
+          render={(notes: string) =>
+            notes ? (
+              <Tag
+                color="purple"
+                style={{ whiteSpace: "normal", maxWidth: 200 }}
+              >
+                {notes}
+              </Tag>
+            ) : (
+              <span style={{ color: "#999" }}>—</span>
+            )
+          }
+        />
+        <Table.Column
+          title="Description"
+          dataIndex="content"
+          key="content"
+          render={(t) => t}
         />
         <Table.Column
           title="Uploaded By"
@@ -170,12 +270,32 @@ export default function DocumentsPage() {
           }
         />
         <Table.Column
+          title="Download"
+          key="download"
+          render={(_, r: any) => {
+            const fileUrl = r.filePath;
+            const downloadUrl = fileUrl.replace(
+              "/upload/",
+              `/upload/fl_attachment:${encodeURIComponent(r.title)}/`
+            );
+            return (
+              <Button type="link">
+                <a href={downloadUrl} download>
+                  Download
+                </a>
+              </Button>
+            );
+          }}
+        />
+        <Table.Column
           title="Actions"
           key="actions"
           render={(_, r: any) => (
             <Space>
               <Button onClick={() => handleOpen(r)}>Open</Button>
-              <Button onClick={() => handleReview(r)}>Review</Button>
+              {!["client"].includes(role) && (
+                <Button onClick={() => handleReview(r)}>Review</Button>
+              )}
             </Space>
           )}
         />

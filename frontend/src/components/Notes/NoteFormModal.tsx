@@ -115,11 +115,11 @@ export default function NoteFormModal({
       ]}
     >
       <Form layout="vertical" form={form}>
-        <Form.Item label="Case (optional)" name="caseId">
+        <Form.Item label="Case No. (optional)" name="caseId">
           <Select placeholder="Select case" allowClear>
             {cases.map((c: any) => (
               <Select.Option value={c.id} key={c.id}>
-                {c.title}
+                {c.id}
               </Select.Option>
             ))}
           </Select>

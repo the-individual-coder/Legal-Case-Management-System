@@ -90,6 +90,16 @@ export default function ClientsPage() {
     { title: "Address", dataIndex: "address", key: "address" },
     { title: "Notes", dataIndex: "notes", key: "notes" },
     {
+      title: "Created At",
+      dataIndex: "createdAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
+      title: "Updated At",
+      dataIndex: "updatedAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
       title: "Action",
       render: (record: Client) =>
         (canUpdate || canDelete) && (

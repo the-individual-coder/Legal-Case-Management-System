@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, Tag, Spin, Modal, message, App } from "antd";
+import {
+  Table,
+  Button,
+  Space,
+  Tag,
+  Spin,
+  message,
+  App,
+  Select,
+  Input,
+} from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import AppointmentFormModal from "@/components/Appointments/AppointmentFormModal";
 import { useSession } from "next-auth/react";
@@ -22,7 +32,7 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Appointment | null>(null);
-
+  const [filter, setFilter] = useState({ status: "", caseNo: "" });
   const { data, status } = useSession();
   const userId = status === "authenticated" ? data?.user?.id : null;
   const role = (data?.user as any)?.role ?? "client";
@@ -33,30 +43,47 @@ export default function AppointmentsPage() {
   const canUpdate = can(role, PERMISSIONS.APPOINTMENTS.UPDATE);
   const canDelete = can(role, PERMISSIONS.APPOINTMENTS.DELETE);
 
+  // 🔑 build single `search` query param
+  const buildSearchQuery = () => {
+    const conditions: string[] = [];
+    if (filter.status) conditions.push(`status:${filter.status}`);
+    if (filter.caseNo) conditions.push(`caseId:${filter.caseNo}`);
+    return conditions.length ? `search=${conditions.join(",")}&` : "";
+  };
+
   const fetchAppointments = async () => {
     if (!canView) return;
     setLoading(true);
     try {
       let res;
-      if (role == "client") {
+      const searchQuery = buildSearchQuery();
+
+      if (role === "client") {
         const client = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=email:${data?.user?.email}`
         );
         const clientData = (await client.json()).data;
+
         if (clientData.length > 0) {
           res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/appointment?search=clientId:${clientData[0].id}&include=Case,client,lawyer`
+            `${
+              process.env.NEXT_PUBLIC_API_BASE_URL
+            }/appointment?search=clientId:${clientData[0].id}${
+              searchQuery
+                ? "," + searchQuery.replace("search=", "").replace("&", "")
+                : ""
+            }&include=Case,client,lawyer`
           );
           const json = await res.json();
           setAppointments(json.data);
         }
       } else {
         res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/appointment/getAppointments`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/appointment?${searchQuery}include=Case,client,lawyer`,
           { credentials: "include" }
         );
         const json = await res.json();
-        setAppointments(json.data.data);
+        setAppointments(json.data);
       }
     } catch (err) {
       console.error(err);
@@ -67,7 +94,7 @@ export default function AppointmentsPage() {
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [filter]);
 
   const handleDelete = async (id: number) => {
     if (!canDelete) {
@@ -78,11 +105,10 @@ export default function AppointmentsPage() {
     modal.confirm({
       title: "Delete appointment?",
       onOk: async () => {
-        const res = await fetch(
+        await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/appointment/deleteAppointment/${id}/${userId}`,
           { method: "DELETE", credentials: "include" }
         );
-        const json = await res.json();
         message.success("Deleted");
         fetchAppointments();
       },
@@ -90,20 +116,26 @@ export default function AppointmentsPage() {
   };
 
   const columns = [
-    { title: "Case", dataIndex: ["Case", "title"], key: "case" },
+    { title: "Case No.", dataIndex: ["Case", "id"], key: "case" },
     {
       title: "Client",
       render: (r: Appointment) =>
         r.client ? `${r.client.firstName} ${r.client.lastName}` : "-",
     },
-    {
-      title: "Lawyer",
-      dataIndex: ["lawyer", "name"],
-      key: "lawyer",
-    },
+    { title: "Lawyer", dataIndex: ["lawyer", "name"], key: "lawyer" },
     {
       title: "Scheduled At",
       dataIndex: "scheduledAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
+      title: "Updated At",
+      dataIndex: "updatedAt",
       render: (d: string) => new Date(d).toLocaleString(),
     },
     {
@@ -171,7 +203,29 @@ export default function AppointmentsPage() {
           </Button>
         )}
       </div>
-
+      {/* Filters */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <Select
+          placeholder="Filter by status"
+          style={{ width: 200 }}
+          value={filter.status || undefined}
+          onChange={(value) => setFilter((f) => ({ ...f, status: value }))}
+          options={[
+            { label: "Pending", value: "pending" },
+            { label: "Confirmed", value: "confirmed" },
+            { label: "Completed", value: "completed" },
+            { label: "Canceled", value: "canceled" },
+          ]}
+        />
+        <Input.Search
+          placeholder="Filter by case no."
+          value={filter.caseNo}
+          onChange={(e) => setFilter((f) => ({ ...f, caseNo: e.target.value }))}
+          onSearch={(v) => setFilter((f) => ({ ...f, caseNo: v }))}
+          allowClear
+          style={{ width: 200 }}
+        />
+      </div>
       <Table
         style={{ tableLayout: "auto" }}
         rowKey="id"

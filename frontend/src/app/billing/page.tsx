@@ -1,8 +1,7 @@
-// src/app/billing/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, Spin, App, Modal } from "antd";
+import { Table, Button, Space, Spin, App, Modal, Select } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import InvoiceFormModal from "@/components/Billing/InvoiceFormModal";
 import PaymentStatusTag from "@/components/Billing/PaymentStatusTag";
@@ -30,6 +29,7 @@ export default function BillingPage() {
   const [items, setItems] = useState<InvoiceRow[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<InvoiceRow | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>("");
 
   const canView = can(role, PERMISSIONS.BILLING.VIEW);
   const canCreate = can(role, PERMISSIONS.BILLING.CREATE);
@@ -40,26 +40,24 @@ export default function BillingPage() {
     if (!canView) return;
     setLoading(true);
     try {
-      if (role == "client") {
+      let url = "";
+      if (role === "client") {
         const client = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/client?search=email:${session?.user?.email}`
         );
         const clientData = (await client.json()).data;
         if (clientData.length > 0) {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice?search=clientId:${clientData[0]?.id}&include=Client,Case`
-          );
-          const json = await res.json();
-          setItems(json.data || []);
+          url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice?search=clientId:${clientData[0]?.id}&include=Client,Case`;
         }
+      } else if (filterStatus) {
+        url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice?search=status:${filterStatus}`;
       } else {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice/list`,
-          { credentials: "include" }
-        );
-        const json = await res.json();
-        setItems(json.data.data || []);
+        url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice/list`;
       }
+
+      const res = await fetch(url, { credentials: "include" });
+      const json = await res.json();
+      setItems(json.data.data || json.data || []);
     } catch (err) {
       console.error(err);
       message.error("Failed to load invoices");
@@ -70,7 +68,8 @@ export default function BillingPage() {
 
   useEffect(() => {
     fetchInvoices();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStatus]);
 
   const handleDelete = (rec: InvoiceRow) => {
     if (!canDelete) {
@@ -86,8 +85,35 @@ export default function BillingPage() {
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice/delete/${rec.id}/${userId}`,
             { method: "DELETE", credentials: "include" }
           );
-          const json = await res.json();
+          await res.json();
           message.success("Deleted");
+          fetchInvoices();
+        } catch (err) {
+          message.error("Failed");
+        }
+      },
+    });
+  };
+
+  const recordPayment = (invoiceId: number) => {
+    modal.confirm({
+      title: "Record payment?",
+      content:
+        "Client will upload payment proof via client portal — do you want to mark as paid now?",
+      onOk: async () => {
+        try {
+          const body = { paidAt: new Date().toISOString() };
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice/pay/${invoiceId}/${userId}`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify(body),
+            }
+          );
+          await res.json();
+          message.success("Marked as paid");
           fetchInvoices();
         } catch (err) {
           message.error("Failed");
@@ -109,7 +135,7 @@ export default function BillingPage() {
       render: (_: any, r: InvoiceRow) =>
         r.Client ? `${r.Client.firstName} ${r.Client.lastName}` : "-",
     },
-    { title: "Case", dataIndex: ["Case", "title"], key: "case" },
+    { title: "Case No.", dataIndex: ["Case", "id"], key: "case" },
     {
       title: "Amount",
       dataIndex: "amount",
@@ -132,6 +158,16 @@ export default function BillingPage() {
       dataIndex: "status",
       key: "status",
       render: (s: string) => <PaymentStatusTag status={s} />,
+    },
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
+      title: "Updated At",
+      dataIndex: "updatedAt",
+      render: (d: string) => new Date(d).toLocaleString(),
     },
     {
       title: "Actions",
@@ -169,33 +205,6 @@ export default function BillingPage() {
     },
   ];
 
-  const recordPayment = (invoiceId: number) => {
-    modal.confirm({
-      title: "Record payment?",
-      content:
-        "Client will upload payment proof via client portal — do you want to mark as paid now?",
-      onOk: async () => {
-        try {
-          const body = { paidAt: new Date().toISOString() };
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/invoice/pay/${invoiceId}/${userId}`,
-            {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify(body),
-            }
-          );
-          const json = await res.json();
-          message.success("Marked as paid");
-          fetchInvoices();
-        } catch (err) {
-          message.error("Failed");
-        }
-      },
-    });
-  };
-
   if (!canView)
     return (
       <div className="p-6">
@@ -220,6 +229,22 @@ export default function BillingPage() {
             New Invoice
           </Button>
         )}
+      </div>
+
+      {/* Status Filter */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <Select
+          placeholder="Filter by Status"
+          style={{ width: 200 }}
+          value={filterStatus || undefined}
+          onChange={(value) => setFilterStatus(value)}
+          options={[
+            { label: "Pending", value: "pending" },
+            { label: "Paid", value: "paid" },
+            { label: "Overdue", value: "overdue" },
+          ]}
+          allowClear
+        />
       </div>
 
       <Table

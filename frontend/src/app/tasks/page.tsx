@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, Tag, Spin, Modal, App } from "antd";
+import { Table, Button, Space, Tag, Spin, Modal, App, Select } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import TaskFormModal from "@/components/Tasks/TaskFormModal";
 import { useSession } from "next-auth/react";
@@ -22,6 +22,7 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>("");
 
   const { data, status } = useSession();
   const userId = status === "authenticated" ? data?.user?.id : null;
@@ -37,20 +38,30 @@ export default function TasksPage() {
     if (!canView) return;
     setLoading(true);
     try {
+      const conditions: string[] = [];
+      if (filterStatus) conditions.push(`status:${filterStatus}`);
+      const searchQuery = conditions.length
+        ? `search=${conditions.join(",")}`
+        : "";
+
+      let url: string;
       if (["admin", "staff", "reviewer"].includes(role)) {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/task/getTasks`,
-          { credentials: "include" }
-        );
-        const json = await res.json();
-        setTasks(json.data.data || []);
+        if (searchQuery) {
+          url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/task?${searchQuery}&include=Case,assignee`;
+        } else {
+          url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/task/getTasks`;
+        }
       } else {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/task?search=assignedToId:${userId}&include=Case,assignee`
-        );
-        const json = await res.json();
-        setTasks(json.data || []);
+        url = `${
+          process.env.NEXT_PUBLIC_API_BASE_URL
+        }/task?search=assignedToId:${userId}${
+          searchQuery ? "," + searchQuery.replace("search=", "") : ""
+        }&include=Case,assignee`;
       }
+
+      const res = await fetch(url, { credentials: "include" });
+      const json = await res.json();
+      setTasks(json.data.data || json.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -60,7 +71,8 @@ export default function TasksPage() {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStatus]);
 
   const handleDelete = async (id: number) => {
     if (!canDelete) {
@@ -82,13 +94,9 @@ export default function TasksPage() {
   };
 
   const columns = [
-    { title: "Case", dataIndex: ["Case", "title"], key: "case" },
+    { title: "Case No.", dataIndex: ["Case", "id"], key: "case" },
     { title: "Title", dataIndex: "title", key: "title" },
-    {
-      title: "Assigned To",
-      dataIndex: ["assignee", "name"],
-      key: "assignee",
-    },
+    { title: "Assigned To", dataIndex: ["assignee", "name"], key: "assignee" },
     {
       title: "Due Date",
       dataIndex: "dueDate",
@@ -100,6 +108,16 @@ export default function TasksPage() {
       render: (s: string) => (
         <Tag color={s === "completed" ? "green" : "orange"}>{s}</Tag>
       ),
+    },
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
+      title: "Updated At",
+      dataIndex: "updatedAt",
+      render: (d: string) => new Date(d).toLocaleString(),
     },
     {
       title: "Action",
@@ -158,6 +176,22 @@ export default function TasksPage() {
             New Task
           </Button>
         )}
+      </div>
+
+      {/* Status Filter */}
+      <div className="mb-4">
+        <Select
+          placeholder="Filter by Status"
+          style={{ width: 200 }}
+          value={filterStatus || undefined}
+          onChange={(value) => setFilterStatus(value)}
+          options={[
+            { label: "Pending", value: "pending" },
+            { label: "In Progress", value: "in-progress" },
+            { label: "Completed", value: "completed" },
+          ]}
+          allowClear
+        />
       </div>
 
       <Table rowKey="id" columns={columns} dataSource={tasks} />

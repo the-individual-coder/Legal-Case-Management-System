@@ -53,7 +53,7 @@ export default function ClientIntakeFormModal({
   useEffect(() => {
     if (editing) {
       form.setFieldsValue({
-        clientId: editing.client?.id,
+        clientId: editing.Client?.id,
         caseType: editing.caseType,
         referredBy: editing.referredBy,
         intakeNotes: editing.intakeNotes,
@@ -81,7 +81,6 @@ export default function ClientIntakeFormModal({
             body: JSON.stringify(values),
           }
         );
-        if (!res.ok) throw new Error("Update failed");
         await res.json();
         message.success("Updated");
       } else {
@@ -94,7 +93,6 @@ export default function ClientIntakeFormModal({
             body: JSON.stringify({ ...values, userId }),
           }
         );
-        if (!res.ok) throw new Error("Create failed");
         await res.json();
         message.success("Created");
       }
@@ -149,7 +147,20 @@ export default function ClientIntakeFormModal({
           name="caseType"
           rules={[{ required: true }]}
         >
-          <Input placeholder="e.g., civil, family, criminal" />
+          <Select
+            placeholder="Case Type"
+            allowClear
+            options={[
+              {
+                label: "Criminal Case: BP22 or Estafa",
+                value: "Criminal Case",
+              },
+              {
+                label: "Civil Case: Partition and Transfer of Title",
+                value: "Civil Case",
+              },
+            ]}
+          />
         </Form.Item>
 
         <Form.Item label="Referred By" name="referredBy">

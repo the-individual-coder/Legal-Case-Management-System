@@ -23,6 +23,20 @@ export default function EngagementFormModal({ open, editing, onClose }: Props) {
   const [clients, setClients] = useState<any[]>([]);
   const [lawyers, setLawyers] = useState<any[]>([]);
 
+  const getCaseData = (caseId: number) => {
+    const selected = cases.find((c: any) => c.id === caseId);
+    if (!selected) return;
+    // auto-fill form values with case info
+    form.setFieldsValue({
+      caseId: selected.id,
+      clientId: selected.Client?.id ?? selected.clientId ?? null,
+      lawyerId: selected.assignedLawyer?.id ?? selected.lawyerId ?? null,
+      startDate: selected.startDate ? dayjs(selected.startDate) : null,
+      endDate: selected.endDate ? dayjs(selected.endDate) : null,
+      // status: selected.status ?? "active",
+    });
+  };
+
   useEffect(() => {
     if (!allowed) return;
     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/case/getCases`, {
@@ -80,7 +94,6 @@ export default function EngagementFormModal({ open, editing, onClose }: Props) {
         credentials: "include",
         body: JSON.stringify({ ...payload, userId }),
       });
-      if (!res.ok) throw new Error(await res.text());
       message.success(editing ? "Updated" : "Created");
       onClose();
     } catch (err: any) {
@@ -114,9 +127,10 @@ export default function EngagementFormModal({ open, editing, onClose }: Props) {
       destroyOnHidden
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        <Form.Item name="caseId" label="Case" rules={[{ required: true }]}>
+        <Form.Item name="caseId" label="Case No." rules={[{ required: true }]}>
           <Select
-            options={cases.map((c: any) => ({ label: c.title, value: c.id }))}
+            onChange={(value) => getCaseData(value)}
+            options={cases.map((c: any) => ({ label: c.id, value: c.id }))}
             showSearch
             optionFilterProp="label"
           />

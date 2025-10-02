@@ -121,17 +121,17 @@ export default function ClosureFormModal({
       <Form form={form} layout="vertical">
         <Form.Item
           name="caseId"
-          label="Case"
+          label="Case No."
           rules={[{ required: true, message: "Please select a case" }]}
         >
           <Select
-            placeholder="Select a case"
+            placeholder="Select a case no."
             showSearch
             optionFilterProp="children"
           >
             {cases.map((c) => (
               <Select.Option key={c.id} value={c.id}>
-                {c.title}
+                {c.id}
               </Select.Option>
             ))}
           </Select>

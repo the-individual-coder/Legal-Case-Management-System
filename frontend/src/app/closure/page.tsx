@@ -82,10 +82,9 @@ export default function ClosurePage() {
 
   const columns = [
     {
-      title: "Case",
+      title: "Case No.",
       dataIndex: ["Case", "title"],
-      render: (_: any, record: Closure) =>
-        record.Case?.title || `Case #${record.Case?.id}`,
+      render: (_: any, record: Closure) => `${record.Case?.id}`,
     },
     {
       title: "Closed By",
@@ -98,6 +97,16 @@ export default function ClosurePage() {
       render: (d: string) => new Date(d).toLocaleString(),
     },
     { title: "Summary", dataIndex: "summary" },
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
+      title: "Updated At",
+      dataIndex: "updatedAt",
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
     {
       title: "Action",
       render: (r: Closure) =>

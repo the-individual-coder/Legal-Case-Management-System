@@ -1,12 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, Spin, Tag, App } from "antd";
-import {
-  PlusOutlined,
-  EditOutlined,
-  UsergroupAddOutlined,
-} from "@ant-design/icons";
+import { Table, Button, Space, Spin, Tag, App, Select } from "antd";
+import { PlusOutlined, EditOutlined } from "@ant-design/icons";
 import { useSession } from "next-auth/react";
 import { PERMISSIONS, can } from "@/lib/rbac";
 import CaseFormModal from "@/components/Cases/CaseFormModal";
@@ -22,6 +18,7 @@ type CaseRow = {
   Client?: { id: number; firstName: string; lastName: string };
   AssignedLawyer?: { id: number; name?: string };
   createdAt?: string;
+  updatedAt?: string;
 };
 
 export default function CasesPage() {
@@ -37,28 +34,41 @@ export default function CasesPage() {
   const [editing, setEditing] = useState<CaseRow | null>(null);
   const [selectedCase, setSelectedCase] = useState<CaseRow | null>(null);
 
+  const [filter, setFilter] = useState({ status: "", priority: "" });
+
   const canView = can(role, PERMISSIONS.CASES.VIEW);
   const canCreate = can(role, PERMISSIONS.CASES.CREATE);
   const canUpdate = can(role, PERMISSIONS.CASES.UPDATE);
+
+  const buildSearchQuery = () => {
+    const conditions: string[] = [];
+    if (filter.status) conditions.push(`status:${filter.status}`);
+    if (filter.priority) conditions.push(`priority:${filter.priority}`);
+    return conditions.length ? `search=${conditions.join(",")}` : "";
+  };
 
   const fetchCases = async () => {
     if (!canView) return;
     setLoading(true);
     try {
-      let res;
-      if (role == "lawyer") {
-        res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/case?search=assignedLawyerId:${session?.user?.id}`
-        );
-        const json = await res.json();
-        setItems(json.data);
+      const searchQuery = buildSearchQuery(); // builds filters like "search=status:active,priority:high"
+      let url: string;
+
+      if (role === "lawyer") {
+        url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/case?search=assignedLawyerId:${session?.user?.id}`;
+        if (searchQuery) {
+          url += `,${searchQuery.replace("search=", "")}`;
+        }
+        url += "&include=Client,assignedLawyer";
+      } else if (searchQuery) {
+        url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/case?${searchQuery}&include=Client,assignedLawyer`;
       } else {
-        res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/case/list`, {
-          credentials: "include",
-        });
-        const json = await res.json();
-        setItems(json.data.data || []);
+        url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/case/list`;
       }
+
+      const res = await fetch(url, { credentials: "include" });
+      const json = await res.json();
+      setItems(json.data.data || json.data || []);
     } catch (err) {
       console.error(err);
       message.error("Failed to load cases");
@@ -69,7 +79,8 @@ export default function CasesPage() {
 
   useEffect(() => {
     fetchCases();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter.status, filter.priority]);
 
   if (!canView) {
     return (
@@ -98,11 +109,42 @@ export default function CasesPage() {
         )}
       </div>
 
+      {/* Filters */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <Select
+          placeholder="Filter by Priority"
+          style={{ width: 200 }}
+          value={filter.priority || undefined}
+          onChange={(value) => setFilter((f) => ({ ...f, priority: value }))}
+          options={[
+            { label: "Low", value: "low" },
+            { label: "Normal", value: "normal" },
+            { label: "High", value: "high" },
+            { label: "Urgent", value: "urgent" },
+          ]}
+          allowClear
+        />
+        <Select
+          placeholder="Filter by Status"
+          style={{ width: 200 }}
+          value={filter.status || undefined}
+          onChange={(value) => setFilter((f) => ({ ...f, status: value }))}
+          options={[
+            { label: "New", value: "new" },
+            { label: "Active", value: "active" },
+            { label: "In Court", value: "in_court" },
+            { label: "Closed", value: "closed" },
+            { label: "On-hold", value: "on-hold" },
+          ]}
+          allowClear
+        />
+      </div>
+
       {loading ? (
         <Spin size="large" className="m-8" />
       ) : (
         <Table rowKey="id" dataSource={items} pagination={{ pageSize: 8 }}>
-          <Table.Column title="Title" dataIndex="title" key="title" />
+          <Table.Column title="Case no." dataIndex="id" key="id" />
           <Table.Column
             title="Client"
             key="Client"
@@ -112,8 +154,10 @@ export default function CasesPage() {
           />
           <Table.Column
             title="Lawyer"
-            dataIndex={["assignedLawyer", "name"]}
-            key="lawyer"
+            key="assignedLawyer"
+            render={(_, r: any) =>
+              r.assignedLawyer.name ? `${r.assignedLawyer.name}` : "-"
+            }
           />
           <Table.Column
             title="Priority"
@@ -136,12 +180,24 @@ export default function CasesPage() {
             )}
           />
           <Table.Column
+            title="Created At"
+            dataIndex="createdAt"
+            key="createdAt"
+            render={(s) => new Date(s).toLocaleString()}
+          />
+          <Table.Column
+            title="Updated At"
+            dataIndex="updatedAt"
+            key="updatedAt"
+            render={(s) => new Date(s).toLocaleString()}
+          />
+          <Table.Column
             title="Actions"
             key="actions"
             render={(_, r: CaseRow) => (
               <Space>
                 <Button
-                  onClick={async () => {
+                  onClick={() => {
                     setSelectedCase(r);
                     setDetailsOpen(true);
                   }}
@@ -159,23 +215,6 @@ export default function CasesPage() {
                       }}
                     >
                       Edit
-                    </Button>
-                    <Button
-                      icon={<UsergroupAddOutlined />}
-                      onClick={() => {
-                        // quick assign flow (open assign modal)
-                        modal.confirm({
-                          title: "Assign lawyer",
-                          content:
-                            "This will open the edit case modal where you can assign a lawyer.",
-                          onOk() {
-                            setEditing(r);
-                            setModalOpen(true);
-                          },
-                        });
-                      }}
-                    >
-                      Assign
                     </Button>
                     <Button onClick={() => setSelectedCase(r)} type="primary">
                       Recommend Lawyer

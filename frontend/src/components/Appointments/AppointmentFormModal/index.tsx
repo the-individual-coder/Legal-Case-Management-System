@@ -133,10 +133,6 @@ export default function AppointmentFormModal({
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        throw new Error(await res.text());
-      }
-
       message.success("Appointment saved");
       onClose();
     } catch (err: any) {
@@ -173,20 +169,28 @@ export default function AppointmentFormModal({
       footer={null}
     >
       <Form form={form} layout="vertical">
-        <Form.Item label="Case" name="caseId" rules={[{ required: true }]}>
-          <Select placeholder="Select case">
+        <Form.Item label="Case No." name="caseId" rules={[{ required: true }]}>
+          <Select placeholder="Select case no.">
             {cases?.map((c) => (
               <Select.Option key={c.id} value={c.id}>
-                {c.title}
+                {c.id}
               </Select.Option>
             ))}
           </Select>
         </Form.Item>
 
         <Form.Item label="Client" name="clientId" rules={[{ required: true }]}>
-          <Select placeholder="Select client">
+          <Select
+            placeholder="Select client"
+            showSearch
+            optionFilterProp="label"
+          >
             {clients.map((c) => (
-              <Select.Option key={c.id} value={c.id}>
+              <Select.Option
+                key={c.id}
+                value={c.id}
+                label={`${c.firstName} ${c.lastName}`}
+              >
                 {c.firstName} {c.lastName}
               </Select.Option>
             ))}
@@ -212,6 +216,9 @@ export default function AppointmentFormModal({
             showTime
             style={{ width: "100%" }}
             placeholder="Select date and time"
+            disabledDate={(current) =>
+              current && current < dayjs().startOf("day")
+            }
           />
         </Form.Item>
 

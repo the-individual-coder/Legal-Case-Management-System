@@ -89,7 +89,7 @@ module.exports = class ClientController extends BaseController {
       });
 
       // Log activity
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "create",
         targetType: "Client",
@@ -119,7 +119,7 @@ module.exports = class ClientController extends BaseController {
 
       await client.update(req.body);
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "update",
         targetType: "Client",
@@ -148,7 +148,7 @@ module.exports = class ClientController extends BaseController {
 
       await client.destroy();
 
-      await logActivity({
+      await this.logActivity({
         userId,
         action: "delete",
         targetType: "Client",

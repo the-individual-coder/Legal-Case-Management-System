@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, Spin, Tag, App } from "antd";
+import { Table, Button, Space, Spin, Tag, App, Select } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useSession } from "next-auth/react";
 import { PERMISSIONS, can } from "@/lib/rbac";
@@ -21,6 +21,7 @@ type Intake = {
   referredBy?: string;
   intakeNotes?: string;
   createdAt?: string;
+  updatedAt?: string;
 };
 
 export default function ClientIntakePage() {
@@ -28,6 +29,7 @@ export default function ClientIntakePage() {
   const [items, setItems] = useState<Intake[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Intake | null>(null);
+  const [filter, setFilter] = useState({ caseType: "" });
 
   const { data: session, status } = useSession();
   const role = (session?.user as any)?.role ?? "client";
@@ -40,17 +42,25 @@ export default function ClientIntakePage() {
 
   const { modal, message } = App.useApp();
 
+  const buildSearchQuery = () => {
+    const conditions: string[] = [];
+    if (filter.caseType) conditions.push(`caseType:${filter.caseType}`);
+    return conditions.length ? `search=${conditions.join(",")}` : "";
+  };
+
   const fetchList = async () => {
     if (!canView) return;
     setLoading(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/clientintake/list`,
-        { credentials: "include" }
-      );
-      if (!res.ok) throw new Error("Failed to fetch");
+      const searchQuery = buildSearchQuery();
+      const url = searchQuery
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/clientintake?${searchQuery}&include=Client`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/clientintake/list`;
+
+      const res = await fetch(url, { credentials: "include" });
       const json = await res.json();
-      setItems(json.data.data || []);
+      setItems(json.data.data || json.data || []);
+      console.log("the items", items);
     } catch (err) {
       console.error(err);
     } finally {
@@ -61,7 +71,7 @@ export default function ClientIntakePage() {
   useEffect(() => {
     fetchList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filter.caseType]); // auto-fetch on filter change
 
   const handleDelete = (intake: Intake) => {
     if (!canDelete) {
@@ -70,7 +80,7 @@ export default function ClientIntakePage() {
       );
       return;
     }
-    console.log("the intale", intake);
+
     modal.confirm({
       title: "Delete intake record?",
       content: `Are you sure you want to delete intake for ${intake.Client.firstName} ${intake.Client.lastName}?`,
@@ -80,7 +90,6 @@ export default function ClientIntakePage() {
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/clientintake/delete/${intake.id}/${userId}`,
             { method: "DELETE", credentials: "include" }
           );
-          if (!res.ok) throw new Error("Delete failed");
           await res.json();
           message.success("Deleted");
           fetchList();
@@ -107,7 +116,6 @@ export default function ClientIntakePage() {
       title: "Client",
       dataIndex: "Client",
       key: "Client",
-      // No width is set, allowing this column to take up remaining space
       render: (c: Client) => (
         <div>
           <span className="font-medium">
@@ -121,33 +129,36 @@ export default function ClientIntakePage() {
       title: "Case Type",
       dataIndex: "caseType",
       key: "caseType",
-      width: 150, // Set a specific width for this column
+      width: 250,
       render: (t: string) => <Tag color="blue">{t}</Tag>,
     },
     {
       title: "Referred By",
       dataIndex: "referredBy",
       key: "referredBy",
-      // No width is set, allowing this column to adjust
     },
     {
       title: "Notes",
       dataIndex: "intakeNotes",
       key: "intakeNotes",
-      // No width is set, allowing this column to adjust
       ellipsis: true,
     },
     {
       title: "Created",
       dataIndex: "createdAt",
       key: "createdAt",
-      width: 180, // Set a specific width for the date column
+      width: 180,
+      render: (d: string) => new Date(d).toLocaleString(),
+    },
+    {
+      title: "Updated At",
+      dataIndex: "updatedAt",
       render: (d: string) => new Date(d).toLocaleString(),
     },
     {
       title: "Actions",
       key: "actions",
-      width: 200, // Fixed width to ensure buttons don't wrap
+      width: 200,
       render: (r: Intake) => (
         <Space>
           {canUpdate && (
@@ -191,6 +202,27 @@ export default function ClientIntakePage() {
             New Intake
           </Button>
         )}
+      </div>
+
+      {/* Case Type Filter */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <Select
+          placeholder="Filter by Case Type"
+          style={{ width: 300 }}
+          value={filter.caseType || undefined}
+          onChange={(value) => setFilter((f) => ({ ...f, caseType: value }))}
+          options={[
+            {
+              label: "Criminal Case: BP22 or Estafa",
+              value: "Criminal Case",
+            },
+            {
+              label: "Civil Case: Partition and Transfer of Title",
+              value: "Civil Case",
+            },
+          ]}
+          allowClear
+        />
       </div>
 
       <Table rowKey="id" dataSource={items} columns={columns} />
