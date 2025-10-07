@@ -27,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
       scheduledAt: DataTypes.DATE,
       status: DataTypes.STRING,
       notes: DataTypes.TEXT,
+      caseType: DataTypes.STRING,
     },
     { sequelize, modelName: "Appointment" }
   );

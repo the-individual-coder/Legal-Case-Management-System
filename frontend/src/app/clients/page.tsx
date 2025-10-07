@@ -11,6 +11,7 @@ type Client = {
   id: number;
   firstName: string;
   lastName: string;
+  middleInitial: string;
   email: string;
   phone?: string;
   address?: string;
@@ -85,6 +86,11 @@ export default function ClientsPage() {
   const columns = [
     { title: "First Name", dataIndex: "firstName", key: "firstName" },
     { title: "Last Name", dataIndex: "lastName", key: "lastName" },
+    {
+      title: "Middle Initial",
+      dataIndex: "middleInitial",
+      key: "middleInitial",
+    },
     { title: "Email", dataIndex: "email", key: "email" },
     { title: "Phone", dataIndex: "phone", key: "phone" },
     { title: "Address", dataIndex: "address", key: "address" },

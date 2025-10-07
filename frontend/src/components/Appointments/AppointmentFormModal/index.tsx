@@ -169,14 +169,25 @@ export default function AppointmentFormModal({
       footer={null}
     >
       <Form form={form} layout="vertical">
-        <Form.Item label="Case No." name="caseId" rules={[{ required: true }]}>
-          <Select placeholder="Select case no.">
-            {cases?.map((c) => (
-              <Select.Option key={c.id} value={c.id}>
-                {c.id}
-              </Select.Option>
-            ))}
-          </Select>
+        <Form.Item
+          label="Case Type"
+          name="caseType"
+          rules={[{ required: true }]}
+        >
+          <Select
+            placeholder="Case Type"
+            allowClear
+            options={[
+              {
+                label: "Criminal Case: BP22 or Estafa",
+                value: "Criminal Case",
+              },
+              {
+                label: "Civil Case: Partition and Transfer of Title",
+                value: "Civil Case",
+              },
+            ]}
+          />
         </Form.Item>
 
         <Form.Item label="Client" name="clientId" rules={[{ required: true }]}>

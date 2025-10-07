@@ -32,7 +32,7 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Appointment | null>(null);
-  const [filter, setFilter] = useState({ status: "", caseNo: "" });
+  const [filter, setFilter] = useState({ status: "", caseType: "" });
   const { data, status } = useSession();
   const userId = status === "authenticated" ? data?.user?.id : null;
   const role = (data?.user as any)?.role ?? "client";
@@ -47,7 +47,7 @@ export default function AppointmentsPage() {
   const buildSearchQuery = () => {
     const conditions: string[] = [];
     if (filter.status) conditions.push(`status:${filter.status}`);
-    if (filter.caseNo) conditions.push(`caseId:${filter.caseNo}`);
+    if (filter.caseType) conditions.push(`caseType:${filter.caseType}`);
     return conditions.length ? `search=${conditions.join(",")}&` : "";
   };
 
@@ -116,7 +116,7 @@ export default function AppointmentsPage() {
   };
 
   const columns = [
-    { title: "Case No.", dataIndex: ["Case", "id"], key: "case" },
+    { title: "Case Type", dataIndex: "caseType", key: "caseType" },
     {
       title: "Client",
       render: (r: Appointment) =>
@@ -217,13 +217,22 @@ export default function AppointmentsPage() {
             { label: "Canceled", value: "canceled" },
           ]}
         />
-        <Input.Search
-          placeholder="Filter by case no."
-          value={filter.caseNo}
-          onChange={(e) => setFilter((f) => ({ ...f, caseNo: e.target.value }))}
-          onSearch={(v) => setFilter((f) => ({ ...f, caseNo: v }))}
+        <Select
+          placeholder="Filter by Case Type"
+          style={{ width: 300 }}
+          value={filter.caseType || undefined}
+          onChange={(value) => setFilter((f) => ({ ...f, caseType: value }))}
+          options={[
+            {
+              label: "Criminal Case: BP22 or Estafa",
+              value: "Criminal Case",
+            },
+            {
+              label: "Civil Case: Partition and Transfer of Title",
+              value: "Civil Case",
+            },
+          ]}
           allowClear
-          style={{ width: 200 }}
         />
       </div>
       <Table

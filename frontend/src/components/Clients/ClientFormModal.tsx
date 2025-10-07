@@ -116,6 +116,9 @@ export default function ClientFormModal({ open, onClose, editing }: Props) {
         >
           <Input />
         </Form.Item>
+        <Form.Item label="Middle Initial" name="middleInitial">
+          <Input />
+        </Form.Item>
 
         <Form.Item
           label="Email"

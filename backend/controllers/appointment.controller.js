@@ -84,11 +84,19 @@ module.exports = class AppointmentController extends BaseController {
   // POST /api/appointments
   async createAppointment(req, res) {
     try {
-      const { caseId, clientId, lawyerId, scheduledAt, status, notes } =
-        req.body;
+      const {
+        caseId,
+        caseType,
+        clientId,
+        lawyerId,
+        scheduledAt,
+        status,
+        notes,
+      } = req.body;
       const { userId } = req.params;
       const newAppointment = await Appointment.create({
         caseId,
+        caseType,
         clientId,
         lawyerId,
         scheduledAt,

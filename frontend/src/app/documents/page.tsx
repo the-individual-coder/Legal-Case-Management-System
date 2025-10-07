@@ -273,16 +273,25 @@ export default function DocumentsPage() {
           title="Download"
           key="download"
           render={(_, r: any) => {
-            const fileUrl = r.filePath;
-            const downloadUrl = fileUrl.replace(
-              "/upload/",
-              `/upload/fl_attachment:${encodeURIComponent(r.title)}/`
-            );
+            const handleDownload = async () => {
+              try {
+                const response = await fetch(r.filePath);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = r.title || "document";
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+              } catch (err) {
+                message.error("Download failed");
+              }
+            };
             return (
-              <Button type="link">
-                <a href={downloadUrl} download>
-                  Download
-                </a>
+              <Button type="link" onClick={handleDownload}>
+                Download
               </Button>
             );
           }}

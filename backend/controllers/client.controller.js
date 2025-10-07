@@ -76,11 +76,20 @@ module.exports = class ClientController extends BaseController {
   // POST /api/clients
   async createClient(req, res) {
     try {
-      const { firstName, lastName, email, phone, address, notes } = req.body;
+      const {
+        firstName,
+        lastName,
+        middleInitial,
+        email,
+        phone,
+        address,
+        notes,
+      } = req.body;
       const { userId } = req.params;
 
       const newClient = await Client.create({
         firstName,
+        middleInitial,
         lastName,
         email,
         phone,
