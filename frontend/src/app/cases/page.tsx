@@ -156,7 +156,7 @@ export default function CasesPage() {
             title="Lawyer"
             key="assignedLawyer"
             render={(_, r: any) =>
-              r.assignedLawyer.name ? `${r.assignedLawyer.name}` : "-"
+              r.assignedLawyer?.name ? `${r.assignedLawyer?.name}` : "-"
             }
           />
           <Table.Column
