@@ -152,7 +152,11 @@ export default function InvoiceFormModal({ visible, editing, onClose }: Props) {
       footer={null}
     >
       <Form form={form} layout="vertical" onFinish={handleFinish}>
-        <Form.Item name="clientId" label="Client" rules={[{ required: true }]}>
+        <Form.Item
+          name="clientId"
+          label="Client Name"
+          rules={[{ required: true }]}
+        >
           <Select
             showSearch
             optionFilterProp="label"
@@ -189,10 +193,6 @@ export default function InvoiceFormModal({ visible, editing, onClose }: Props) {
           }
         </Form.Item>
 
-        <Form.Item name="description" label="Description">
-          <Input.TextArea rows={3} />
-        </Form.Item>
-
         <Form.Item name="status" label="Status" initialValue="pending">
           <Select
             options={[
@@ -201,6 +201,9 @@ export default function InvoiceFormModal({ visible, editing, onClose }: Props) {
               { label: "Overdue", value: "overdue" },
             ]}
           />
+        </Form.Item>
+        <Form.Item name="description" label="Description">
+          <Input.TextArea rows={3} />
         </Form.Item>
 
         <Form.Item label="Attach payment proof (optional)">

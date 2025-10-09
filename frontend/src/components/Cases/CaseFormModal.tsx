@@ -121,15 +121,11 @@ export default function CaseFormModal({ visible, editing, onClose }: Props) {
       destroyOnHidden
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-          <Input placeholder="Enter case" />
-        </Form.Item>
-
-        <Form.Item name="description" label="Description">
-          <Input.TextArea rows={3} />
-        </Form.Item>
-
-        <Form.Item name="clientId" label="Client" rules={[{ required: true }]}>
+        <Form.Item
+          name="clientId"
+          label="Client Name"
+          rules={[{ required: true }]}
+        >
           <Select
             placeholder="Select client"
             showSearch
@@ -145,6 +141,10 @@ export default function CaseFormModal({ visible, editing, onClose }: Props) {
               </Select.Option>
             ))}
           </Select>
+        </Form.Item>
+
+        <Form.Item name="title" label="Case Title" rules={[{ required: true }]}>
+          <Input placeholder="Enter case" />
         </Form.Item>
 
         <Form.Item name="assignedLawyerId" label="Assigned Lawyer">
@@ -185,6 +185,10 @@ export default function CaseFormModal({ visible, editing, onClose }: Props) {
               { label: "On-hold", value: "on-hold" },
             ]}
           />
+        </Form.Item>
+
+        <Form.Item name="description" label="Description">
+          <Input.TextArea rows={3} />
         </Form.Item>
 
         <div className="flex justify-end gap-2">

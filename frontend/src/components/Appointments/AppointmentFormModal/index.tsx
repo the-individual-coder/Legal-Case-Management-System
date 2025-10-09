@@ -190,7 +190,11 @@ export default function AppointmentFormModal({
           />
         </Form.Item>
 
-        <Form.Item label="Client" name="clientId" rules={[{ required: true }]}>
+        <Form.Item
+          label="Client Name"
+          name="clientId"
+          rules={[{ required: true }]}
+        >
           <Select
             placeholder="Select client"
             showSearch
@@ -208,7 +212,11 @@ export default function AppointmentFormModal({
           </Select>
         </Form.Item>
 
-        <Form.Item label="Lawyer" name="lawyerId" rules={[{ required: true }]}>
+        <Form.Item
+          label="Lawyer Name"
+          name="lawyerId"
+          rules={[{ required: true }]}
+        >
           <Select placeholder="Select lawyer">
             {lawyers.map((l) => (
               <Select.Option key={l.id} value={l.id}>

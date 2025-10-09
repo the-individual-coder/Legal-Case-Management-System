@@ -71,7 +71,10 @@ export default function DocumentsPage() {
 
   const handleOpen = (d: any) => {
     if (!d.filePath) return;
-    window.open(d.filePath, "_blank");
+    const viewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
+      d.filePath
+    )}&embedded=true`;
+    window.open(viewUrl, "_blank");
   };
 
   const handleReview = (d: any) => {

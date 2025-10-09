@@ -130,7 +130,11 @@ export default function ClientIntakeFormModal({
       footer={null}
     >
       <Form form={form} layout="vertical">
-        <Form.Item label="Client" name="clientId" rules={[{ required: true }]}>
+        <Form.Item
+          label="Client Name"
+          name="clientId"
+          rules={[{ required: true }]}
+        >
           <Select
             placeholder="Select client"
             options={clients.map((c) => ({

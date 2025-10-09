@@ -115,6 +115,8 @@ export default function DocumentUploadForm({
               { label: "Evidence", value: "evidence" },
               { label: "Contract", value: "contract" },
               { label: "Payment proof", value: "payment_proof" },
+              { label: "Pleadings", value: "pleadings" },
+              { label: "Orders", value: "orders" },
               { label: "Other", value: "other" },
             ]}
           />

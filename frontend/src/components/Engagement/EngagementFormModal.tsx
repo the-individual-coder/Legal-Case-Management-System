@@ -135,7 +135,11 @@ export default function EngagementFormModal({ open, editing, onClose }: Props) {
             optionFilterProp="label"
           />
         </Form.Item>
-        <Form.Item name="clientId" label="Client" rules={[{ required: true }]}>
+        <Form.Item
+          name="clientId"
+          label="Client Name"
+          rules={[{ required: true }]}
+        >
           <Select
             options={clients.map((c: any) => ({
               label: `${c.firstName} ${c.lastName}`,
@@ -145,7 +149,11 @@ export default function EngagementFormModal({ open, editing, onClose }: Props) {
             optionFilterProp="label"
           />
         </Form.Item>
-        <Form.Item name="lawyerId" label="Lawyer" rules={[{ required: true }]}>
+        <Form.Item
+          name="lawyerId"
+          label="Lawyer Name"
+          rules={[{ required: true }]}
+        >
           <Select
             options={lawyers.map((l: any) => ({ label: l.name, value: l.id }))}
             showSearch

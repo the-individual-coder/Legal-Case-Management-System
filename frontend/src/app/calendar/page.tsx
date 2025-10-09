@@ -52,8 +52,7 @@ export default function CalendarPage() {
               from
             )}&endDate=${encodeURIComponent(to)}`
           : "";
-      if (["admin", "staff"].includes(role)) {
-        console.log("the rolee", role);
+      if (["admin", "staff", "reviewer", "lawyer"].includes(role)) {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/CalendarEvent/getEvents${qs}`,
           { credentials: "include" }
