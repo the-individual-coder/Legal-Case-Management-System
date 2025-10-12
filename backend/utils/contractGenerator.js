@@ -1,31 +1,43 @@
-// backend/utils/contractGenerator.js
 const fs = require("fs-extra");
 const path = require("path");
 const Handlebars = require("handlebars");
-const puppeteer = require("puppeteer");
 
-/**
- * renderTemplateToPdf
- * - templatePath: absolute path to .hbs file
- * - context: object for Handlebars
- * - returns: Buffer (PDF bytes)
- */
 async function renderTemplateToPdf({ templatePath, context, pdfOptions = {} }) {
   const templateSrc = await fs.readFile(templatePath, "utf8");
   const template = Handlebars.compile(templateSrc);
   const html = template(context);
 
-  // Launch Puppeteer and render HTML to PDF buffer
-  const browser = await puppeteer.launch({
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-  try {
-    const page = await browser.newPage();
+  let browser = null;
 
-    // Set content and wait until network idle to ensure css/images load
+  try {
+    // Check if we're on Render or any production environment
+    const isProduction =
+      process.env.NODE_ENV === "production" || process.env.RENDER === "true";
+
+    if (isProduction) {
+      // Production (Render) - use puppeteer-core with @sparticuz/chromium
+      const puppeteerCore = require("puppeteer-core");
+      const chromium = require("@sparticuz/chromium");
+
+      browser = await puppeteerCore.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      });
+    } else {
+      // Local development - use full puppeteer (includes Chrome)
+      const puppeteer = require("puppeteer");
+
+      browser = await puppeteer.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+    }
+
+    const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
 
-    // Default page format: A4, you can change
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
@@ -36,7 +48,9 @@ async function renderTemplateToPdf({ templatePath, context, pdfOptions = {} }) {
     await page.close();
     return pdfBuffer;
   } finally {
-    await browser.close();
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 

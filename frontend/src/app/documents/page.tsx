@@ -71,10 +71,27 @@ export default function DocumentsPage() {
 
   const handleOpen = (d: any) => {
     if (!d.filePath) return;
-    const viewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
-      d.filePath
-    )}&embedded=true`;
-    window.open(viewUrl, "_blank");
+
+    const fileUrl = d.filePath;
+    const ext = fileUrl.split(".").pop()?.toLowerCase();
+
+    const imageTypes = ["jpg", "jpeg", "png", "gif", "webp"];
+    const docTypes = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"];
+
+    let viewUrl = fileUrl;
+
+    if (docTypes.includes(ext || "")) {
+      // Google Docs Viewer for PDFs and Office docs
+      viewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
+        fileUrl
+      )}&embedded=true`;
+    } else if (imageTypes.includes(ext || "")) {
+      // Open image directly
+      viewUrl = fileUrl;
+    }
+
+    // Open in a new tab without triggering download
+    window.open(viewUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleReview = (d: any) => {
